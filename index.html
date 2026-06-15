@@ -321,6 +321,9 @@ let DATA = {
       "action_items": [
         { "task": "Get legal sign-off on operator split payroll structure", "owner": "HMS Ops", "due": "2026-06-30", "status": "open" },
         { "task": "Survey space for 3rd chamber installation feasibility", "owner": "Westaway", "due": "2026-07-15", "status": "open" }
+      ],
+      "capex": [
+        { "description": "3rd chamber expansion (projected)", "amount": 85000, "category": "Equipment", "vendor": "TBD", "expected_date": "2026-Q4", "status": "planned" }
       ]
     },
     {
@@ -357,7 +360,8 @@ let DATA = {
       "action_items": [
         { "task": "Finalize MOU with Skincredible / Bobby", "owner": "Michael Greenhalgh", "due": "2026-06-20", "status": "open" },
         { "task": "Reconcile Account #6002 revenue allocation YTD", "owner": "HMS Finance", "due": "2026-06-30", "status": "open" }
-      ]
+      ],
+      "capex": []
     },
     {
       "name": "Oceanside",
@@ -395,6 +399,12 @@ let DATA = {
         { "task": "Schedule city inspection", "owner": "Westaway", "due": "2026-06-18", "status": "open" },
         { "task": "Select Chamber 2 vendor from bids", "owner": "HMS Ops", "due": "2026-06-22", "status": "open" },
         { "task": "Contract ISP for business fiber", "owner": "Reimers", "due": "2026-07-01", "status": "open" }
+      ],
+      "capex": [
+        { "description": "Chamber 1", "amount": 65000, "category": "Equipment", "vendor": "Sechrist Industries", "expected_date": "2026-01", "status": "paid" },
+        { "description": "Chamber 2", "amount": 65000, "category": "Equipment", "vendor": "TBD", "expected_date": "2026-07", "status": "planned" },
+        { "description": "120A electrical installation", "amount": 18000, "category": "Construction", "vendor": "Pacific Coast Electric", "expected_date": "2026-05", "status": "paid" },
+        { "description": "Business fiber ISP setup", "amount": 1500, "category": "Other", "vendor": "TBD", "expected_date": "2026-07", "status": "planned" }
       ]
     },
     {
@@ -425,7 +435,8 @@ let DATA = {
       "notes": "Operating as Cypress Coast Hyperbarics — separate NPI, consolidated into HMS reporting.\n\nNetwork: AT&T fiber. Cisco router. Equipment on isolated VLAN.",
       "action_items": [
         { "task": "Set referral growth targets for Q3", "owner": "Shared Rep", "due": "2026-07-01", "status": "open" }
-      ]
+      ],
+      "capex": []
     },
     {
       "name": "Monterey",
@@ -461,6 +472,9 @@ let DATA = {
         { "task": "Post technician job listing (Indeed + LinkedIn)", "owner": "HMS HR", "due": "2026-06-16", "status": "open" },
         { "task": "Decide O2 concentrator: renew warranty or replace", "owner": "HMS Ops", "due": "2026-07-15", "status": "open" },
         { "task": "Interview technician candidates", "owner": "HMS HR", "due": "2026-06-30", "status": "open" }
+      ],
+      "capex": [
+        { "description": "O2 concentrator replacement (if needed)", "amount": 4500, "category": "Equipment", "vendor": "Invacare", "expected_date": "2026-08", "status": "planned" }
       ]
     },
     {
@@ -501,6 +515,15 @@ let DATA = {
         { "task": "Get electrical proposal from contractor", "owner": "Westaway", "due": "2026-06-20", "status": "open" },
         { "task": "Select Air/O2 vendor from bids", "owner": "HMS Ops", "due": "2026-06-25", "status": "open" },
         { "task": "Contract ISP for business fiber", "owner": "HMS Ops", "due": "2026-07-01", "status": "open" }
+      ],
+      "capex": [
+        { "description": "Chamber 1", "amount": 75000, "category": "Equipment", "vendor": "Sechrist Industries", "expected_date": "2026-03", "status": "paid" },
+        { "description": "Chamber 2", "amount": 75000, "category": "Equipment", "vendor": "Sechrist Industries", "expected_date": "2026-03", "status": "paid" },
+        { "description": "Flooring", "amount": 12000, "category": "Construction", "vendor": "Rivera Flooring", "expected_date": "2026-07", "status": "planned" },
+        { "description": "Electrical installation", "amount": 22000, "category": "Construction", "vendor": "TBD", "expected_date": "2026-07", "status": "planned" },
+        { "description": "Air compressor", "amount": 18000, "category": "Equipment", "vendor": "TBD", "expected_date": "2026-08", "status": "planned" },
+        { "description": "O2 system", "amount": 14000, "category": "Equipment", "vendor": "TBD", "expected_date": "2026-08", "status": "planned" },
+        { "description": "Business fiber ISP setup", "amount": 1500, "category": "Other", "vendor": "TBD", "expected_date": "2026-08", "status": "planned" }
       ]
     },
     {
@@ -535,7 +558,8 @@ let DATA = {
       "action_items": [
         { "task": "Follow up on 2 outstanding insurance claims >45 days", "owner": "Deb / TMS", "due": "2026-06-20", "status": "open" },
         { "task": "Recruit 2 additional patients for Q3", "owner": "Deb", "due": "2026-07-31", "status": "open" }
-      ]
+      ],
+      "capex": []
     }
   ],
   "actions": [
@@ -643,11 +667,14 @@ function showClinicModal(clinicName) {
 }
 
 function renderModal(clinic) {
+  const openIssueCount = (clinic.issues||[]).filter(i=>i.status==="open").length;
+  const capexTotal = (clinic.capex||[]).reduce((s,c) => s + (c.status!=="paid" ? c.amount : 0), 0);
   const tabs = [
     { id: "overview", label: "Overview" },
-    { id: "issues", label: `Issues ${(clinic.issues||[]).filter(i=>i.status==="open").length > 0 ? "("+((clinic.issues||[]).filter(i=>i.status==="open").length)+")" : ""}` },
+    { id: "issues", label: `Issues${openIssueCount > 0 ? " ("+openIssueCount+")" : ""}` },
     { id: "equipment", label: "Equipment" },
     { id: "vendors", label: "Vendors" },
+    { id: "capex", label: `Capex${capexTotal > 0 ? " ($"+Math.round(capexTotal/1000)+"K)" : ""}` },
     { id: "notes", label: "Notes & Tasks" },
   ];
   document.getElementById("modalTabs").innerHTML = tabs.map(t =>
@@ -748,6 +775,32 @@ function renderModalTab(clinic, tab) {
             </div>
             <div style="font-size:13px;margin-top:6px;color:var(--muted)">${vn.contract_notes}</div>
           </div>`).join("")}
+    </div>`;
+  } else if (tab === "capex") {
+    const items = clinic.capex || [];
+    const statusColor = { planned: "yellow", approved: "blue", ordered: "yellow", paid: "green" };
+    const total = items.reduce((s,c) => s + c.amount, 0);
+    const remaining = items.filter(c=>c.status!=="paid").reduce((s,c) => s + c.amount, 0);
+    html = `<div class="modal-section">
+      <h3>Capital Expenditures</h3>
+      ${items.length === 0 ? `<div class="empty-state">No capex items recorded.</div>` : `
+      <div style="display:flex;gap:20px;margin-bottom:16px;font-size:14px">
+        <div><strong>$${total.toLocaleString()}</strong> <span style="color:var(--muted)">total</span></div>
+        <div><strong>$${remaining.toLocaleString()}</strong> <span style="color:var(--muted)">remaining</span></div>
+      </div>
+      ${items.map(c => `
+        <div class="item-card">
+          <div class="item-card-header">
+            <div class="item-card-title">${c.description}</div>
+            <span class="badge ${statusColor[c.status]||"yellow"}">${c.status}</span>
+          </div>
+          <div class="item-meta">
+            <span><strong>$${c.amount.toLocaleString()}</strong></span>
+            <span>${c.category}</span>
+            <span>Vendor: ${c.vendor}</span>
+            <span>Expected: ${c.expected_date}</span>
+          </div>
+        </div>`).join("")}`}
     </div>`;
   } else if (tab === "notes") {
     const items = clinic.action_items || [];
@@ -892,6 +945,8 @@ Available actions:
 - add_action_item: {clinic, item: {task, owner, due, status}}
 - close_action_item: {clinic, task}
 - add_activity: {activity}
+- add_capex: {clinic, item: {description, amount, category, vendor, expected_date, status}}
+- update_capex_status: {clinic, description, status} — status: planned/approved/ordered/paid
 - add_global_action: {priority, action, owner, clinic, status}
 
 For read-only questions, no <cmd> block needed. Always include add_activity when you make a change.`;
@@ -997,6 +1052,19 @@ function executeCommand(cmd) {
       if (cmd.activity) {
         DATA.recent_activity.unshift({ time: "Jun 15", activity: cmd.activity });
         if (DATA.recent_activity.length > 10) DATA.recent_activity.pop();
+      }
+      break;
+    case "add_capex":
+      if (clinic && cmd.item) {
+        if (!clinic.capex) clinic.capex = [];
+        clinic.capex.push({ amount: 0, category: "Equipment", vendor: "TBD", expected_date: "TBD", status: "planned", ...cmd.item });
+      }
+      break;
+    case "update_capex_status":
+      if (clinic && cmd.description && cmd.status) {
+        (clinic.capex || []).forEach(c => {
+          if (c.description.toLowerCase().includes(cmd.description.toLowerCase())) c.status = cmd.status;
+        });
       }
       break;
     case "add_global_action":
