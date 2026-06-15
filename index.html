@@ -218,9 +218,10 @@ th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spa
   </section>
 
   <div class="footer">
-    Data saved to browser localStorage. Click any clinic card for full details including equipment, issues, and vendor info.
+    Data saved to cloud database. Click any clinic card for full details including equipment, issues, and vendor info.
   </div>
 </main>
+<script type="application/json" id="baselineData">null</script>
 
 <!-- Clinic Detail Modal -->
 <div id="clinicModal" class="modal">
@@ -999,7 +1000,7 @@ For read-only questions, no <cmd> block needed. Always include add_activity when
 
     if (cmdMatches.length > 0) {
       rerenderAll();
-      saveData();
+      await saveToDb();
     }
   } catch(e) {
     typingEl.classList.remove("visible");
@@ -1136,27 +1137,35 @@ function rerenderAll() {
 
 // ===== PERSISTENCE =====
 
-function saveData() {
+async function saveToDb() {
   try {
-    localStorage.setItem("hmsDashboardData", JSON.stringify(DATA));
+    const res = await fetch("/api/db", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(DATA)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     showNotification("Saved.", "success");
   } catch(e) {
     showNotification("Save error: " + e.message, "error");
   }
 }
 
-function loadLocalOverrides(base) {
+async function loadFromDb() {
   try {
-    const saved = localStorage.getItem("hmsDashboardData");
-    if (saved) return JSON.parse(saved);
+    const res = await fetch("/api/db");
+    if (res.ok) return await res.json();
   } catch(e) {}
-  return base;
+  return DATA;
 }
 
-function resetData() {
-  if (confirm("Reset all changes and reload default data?")) {
-    localStorage.removeItem("hmsDashboardData");
-    location.reload();
+async function resetData() {
+  if (confirm("Reset all changes and reload default data? This cannot be undone.")) {
+    const BASELINE = JSON.parse(document.getElementById("baselineData").textContent);
+    DATA = BASELINE;
+    await saveToDb();
+    rerenderAll();
+    showNotification("Reset to baseline.", "success");
   }
 }
 
@@ -1171,7 +1180,7 @@ function showNotification(message, type) {
 // ===== INIT =====
 
 async function initializeDashboard() {
-  DATA = loadLocalOverrides(DATA);
+  DATA = await loadFromDb();
   document.getElementById("search").addEventListener("input", renderClinics);
   document.getElementById("statusFilter").addEventListener("change", renderClinics);
   document.getElementById("categoryFilter").addEventListener("change", renderClinics);
