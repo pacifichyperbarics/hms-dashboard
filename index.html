@@ -238,21 +238,15 @@ th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spa
 <div id="settingsModal" class="settings-modal">
   <div class="settings-content">
     <h2>AI Assistant Settings</h2>
-    <p>Settings are stored in your browser only.</p>
-    <div class="field-row">
-      <div class="field-label">Claude API Key</div>
-      <input type="password" class="full-input" id="apiKeyInput" placeholder="sk-ant-...">
-      <div class="api-status" id="apiStatus"></div>
-    </div>
+    <p>Personality is saved in your browser. The API key is stored securely on the server.</p>
     <div class="field-row">
       <div class="field-label">Personality &amp; Behavior</div>
       <textarea id="personalityInput" class="full-input" rows="9" style="resize:vertical;font-family:inherit;font-size:13px;line-height:1.5"></textarea>
-      <div style="font-size:12px;color:var(--muted);margin-top:5px">Edit freely. The dashboard data is always included automatically — you don't need to reference it here.</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:5px">Edit freely. The dashboard data is always included automatically.</div>
     </div>
     <div class="btn-row">
       <button class="btn-primary" onclick="saveSettings()">Save</button>
       <button class="btn-secondary" onclick="resetPersonality()">Reset Personality</button>
-      <button class="btn-secondary" onclick="clearApiKey()">Clear Key</button>
       <button class="btn-secondary" onclick="closeSettings()">Cancel</button>
     </div>
   </div>
@@ -826,46 +820,23 @@ Rules:
 - When summarizing status, lead with the problem, not the background.`;
 
 function openSettings() {
-  const key = localStorage.getItem("claudeApiKey") || "";
-  document.getElementById("apiKeyInput").value = key ? "sk-ant-..." : "";
   document.getElementById("personalityInput").value = localStorage.getItem("claudePersonality") || DEFAULT_PERSONALITY;
-  updateApiStatus();
   document.getElementById("settingsModal").classList.add("active");
 }
 function closeSettings() { document.getElementById("settingsModal").classList.remove("active"); }
 function saveSettings() {
-  const key = document.getElementById("apiKeyInput").value.trim();
-  if (key && key !== "sk-ant-...") {
-    localStorage.setItem("claudeApiKey", key);
-  }
   const personality = document.getElementById("personalityInput").value.trim();
   if (personality) localStorage.setItem("claudePersonality", personality);
-  updateApiStatus();
-  updateAiIndicator();
   closeSettings();
   showNotification("Settings saved.", "success");
 }
 function resetPersonality() {
   document.getElementById("personalityInput").value = DEFAULT_PERSONALITY;
 }
-function clearApiKey() {
-  localStorage.removeItem("claudeApiKey");
-  document.getElementById("apiKeyInput").value = "";
-  updateApiStatus();
-  updateAiIndicator();
-  showNotification("API key cleared.", "success");
-}
-function updateApiStatus() {
-  const el = document.getElementById("apiStatus");
-  const has = !!localStorage.getItem("claudeApiKey");
-  el.className = "api-status " + (has ? "set" : "unset");
-  el.textContent = has ? "✓ API key is set" : "No key set — using local command parser";
-}
 function updateAiIndicator() {
   const el = document.getElementById("aiIndicator");
-  const has = !!localStorage.getItem("claudeApiKey");
-  el.textContent = has ? "CLAUDE" : "LOCAL";
-  el.className = "ai-indicator " + (has ? "real" : "fake");
+  el.textContent = "CLAUDE";
+  el.className = "ai-indicator real";
 }
 
 // ===== CHATBOX =====
@@ -896,17 +867,10 @@ async function processChatCommand() {
   if (!command) return;
   input.value = "";
   addChatMessage("user", command);
-
-  const apiKey = localStorage.getItem("claudeApiKey");
-  if (apiKey) {
-    await callClaude(command, apiKey);
-  } else {
-    const response = parseCommandLocally(command);
-    setTimeout(() => addChatMessage("assistant", response), 300);
-  }
+  await callClaude(command);
 }
 
-async function callClaude(userMessage, apiKey) {
+async function callClaude(userMessage) {
   const typingEl = document.getElementById("typingIndicator");
   typingEl.classList.add("visible");
 
@@ -933,14 +897,9 @@ Available actions:
 For read-only questions, no <cmd> block needed. Always include add_activity when you make a change.`;
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("/api/chat", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 1024,
@@ -979,7 +938,7 @@ For read-only questions, no <cmd> block needed. Always include add_activity when
     }
   } catch(e) {
     typingEl.classList.remove("visible");
-    addChatMessage("assistant", `Error: ${e.message}. Check your API key in ⚙️ Settings.`);
+    addChatMessage("assistant", `Error: ${e.message}. The server may be unavailable.`);
   }
 }
 
