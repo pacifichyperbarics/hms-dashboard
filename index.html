@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HMS Clinic Operations Dashboard</title>
+<style>
+:root {
+  --bg: #f5f7fb;
+  --panel: #ffffff;
+  --ink: #172033;
+  --muted: #5d6678;
+  --line: #dfe5ef;
+  --green: #1f9d55;
+  --yellow: #b7791f;
+  --red: #c53030;
+  --blue: #2854a3;
+  --shadow: 0 10px 28px rgba(23,32,51,.08);
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.45; }
+header { padding: 28px 34px 20px; background: linear-gradient(135deg, #10213f, #2854a3); color: white; display: flex; justify-content: space-between; align-items: flex-start; }
+header h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: -.3px; }
+header p { margin: 0; opacity: .9; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+.icon-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 14px; }
+.icon-btn:hover { background: rgba(255,255,255,0.25); }
+.wrap { max-width: 1220px; margin: 0 auto; padding: 24px; }
+.toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+input, select, button { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 14px; background: white; }
+input { min-width: 240px; flex: 1; }
+button { cursor: pointer; background: #10213f; color: white; border-color: #10213f; }
+.metrics { display: grid; grid-template-columns: repeat(5, minmax(140px, 1fr)); gap: 14px; margin-bottom: 22px; }
+.metric { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); }
+.metric .num { font-size: 30px; font-weight: 700; margin-bottom: 4px; }
+.metric .label { color: var(--muted); font-size: 13px; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(250px, 1fr)); gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.card:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(23,32,51,.12); }
+.card h2 { font-size: 20px; margin: 0 0 6px; }
+.badge { display: inline-block; border-radius: 999px; padding: 5px 9px; font-size: 12px; font-weight: 700; margin: 4px 6px 10px 0; }
+.green { color: var(--green); background: rgba(31,157,85,.12); }
+.yellow { color: var(--yellow); background: rgba(183,121,31,.14); }
+.red { color: var(--red); background: rgba(197,48,48,.12); }
+.blue { color: var(--blue); background: rgba(40,84,163,.1); }
+.section-title { margin: 14px 0 5px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+ul { margin: 6px 0 0; padding-left: 18px; }
+li { margin: 4px 0; }
+.next { margin-top: 12px; padding: 10px; border-left: 4px solid var(--blue); background: rgba(40,84,163,.06); border-radius: 8px; }
+.tables { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-top: 22px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid var(--line); padding: 10px 8px; text-align: left; vertical-align: top; }
+th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+.footer { margin-top: 22px; color: var(--muted); font-size: 12px; }
+.overview { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); margin-bottom: 18px; }
+.overview-top { display: grid; grid-template-columns: 1.1fr 1.4fr; gap: 16px; align-items: start; }
+.overview h2 { margin: 0 0 8px; font-size: 18px; }
+.overview p { margin: 0 0 8px; color: var(--muted); }
+.summary-row { display: grid; grid-template-columns: 140px 1fr; gap: 8px; margin: 6px 0; font-size: 14px; }
+.summary-row strong { color: var(--ink); }
+.compact-status { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 12px; }
+.status-tile { border: 1px solid var(--line); border-radius: 12px; padding: 9px; background: #fbfcff; cursor: pointer; transition: background 0.2s; }
+.status-tile:hover { background: #e8edf5; }
+.status-tile .clinic-name { font-weight: 700; font-size: 13px; margin-bottom: 3px; }
+.status-tile .clinic-status { font-size: 12px; }
+.details-heading { margin: 24px 0 12px; font-size: 18px; }
+
+/* Modal */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); animation: fadeIn 0.2s; }
+.modal.active { display: flex; align-items: center; justify-content: center; }
+.modal-content { background: white; border-radius: 16px; padding: 0; max-width: 680px; width: 95%; max-height: 88vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header { padding: 20px 24px 0; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.modal-header h2 { margin: 0; font-size: 22px; }
+.close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: var(--muted); padding: 0; width: 32px; height: 32px; line-height: 32px; }
+.close-btn:hover { color: var(--ink); }
+
+/* Tabs */
+.modal-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--line); padding: 0 24px; margin-top: 16px; flex-shrink: 0; overflow-x: auto; }
+.tab-btn { background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; color: var(--muted); padding: 10px 14px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; border-radius: 0; }
+.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+.tab-btn:hover:not(.active) { color: var(--ink); }
+.modal-body { padding: 20px 24px 24px; overflow-y: auto; flex: 1; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* Modal sections */
+.modal-section { margin: 16px 0; }
+.modal-section h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; font-weight: 700; }
+.modal-section ul { margin: 0; padding-left: 20px; }
+
+/* Issue / equipment / vendor cards */
+.item-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; background: #fafbfd; }
+.item-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.item-card-title { font-weight: 600; font-size: 14px; }
+.item-meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.item-meta span { margin-right: 12px; }
+.notes-box { background: #f8f9fc; border: 1px solid var(--line); border-radius: 10px; padding: 14px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; min-height: 60px; }
+.action-item-row { display: flex; align-items: baseline; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.action-item-row:last-child { border-bottom: none; }
+.action-item-task { flex: 1; }
+.action-item-meta { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.empty-state { color: var(--muted); font-size: 13px; padding: 16px 0; font-style: italic; }
+
+/* Settings modal */
+.settings-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+.settings-modal.active { display: flex; align-items: center; justify-content: center; }
+.settings-content { background: white; border-radius: 16px; padding: 28px; max-width: 600px; width: 95%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.settings-content h2 { margin: 0 0 6px; }
+.settings-content p { color: var(--muted); font-size: 14px; margin: 0 0 20px; }
+.field-label { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--ink); }
+.field-row { margin-bottom: 16px; }
+.full-input { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: monospace; }
+.btn-row { display: flex; gap: 10px; margin-top: 20px; }
+.btn-primary { background: #10213f; color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 600; }
+.btn-secondary { background: white; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px 20px; cursor: pointer; font-size: 14px; }
+.api-status { font-size: 12px; margin-top: 8px; }
+.api-status.set { color: var(--green); }
+.api-status.unset { color: var(--muted); }
+
+/* Chatbox */
+.chatbox-container { position: fixed; bottom: 20px; right: 20px; width: 400px; max-height: 520px; background: white; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); display: flex; flex-direction: column; z-index: 999; border: 1px solid var(--line); }
+.chatbox-header { background: linear-gradient(135deg, #10213f, #2854a3); color: white; padding: 14px 16px; border-radius: 16px 16px 0 0; display: flex; justify-content: space-between; align-items: center; }
+.chatbox-header h3 { margin: 0; font-size: 15px; }
+.chatbox-header-actions { display: flex; gap: 6px; align-items: center; }
+.chatbox-toggle { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0; line-height: 1; }
+.ai-indicator { font-size: 11px; padding: 3px 8px; border-radius: 999px; font-weight: 700; }
+.ai-indicator.real { background: rgba(31,157,85,0.3); color: #7effc4; }
+.ai-indicator.fake { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+.chatbox-messages { flex: 1; overflow-y: auto; padding: 14px; max-height: 300px; background: #f5f7fb; }
+.chatbox-message { margin-bottom: 10px; padding: 10px 14px; border-radius: 12px; max-width: 88%; word-wrap: break-word; font-size: 14px; }
+.chatbox-message.user { background: #10213f; color: white; margin-left: auto; }
+.chatbox-message.assistant { background: white; color: var(--ink); border: 1px solid var(--line); }
+.chatbox-input-area { display: flex; padding: 10px; gap: 8px; border-top: 1px solid var(--line); }
+.chatbox-input-area input { flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font-size: 14px; min-width: 0; }
+.chatbox-input-area button { background: #10213f; color: white; border: none; border-radius: 10px; padding: 9px 14px; cursor: pointer; font-size: 14px; flex-shrink: 0; }
+.chatbox-input-area button:hover { background: #2854a3; }
+.chatbox-bottom { padding: 8px 10px; border-top: 1px solid var(--line); display: flex; gap: 6px; }
+.chatbox-bottom button { flex: 1; padding: 6px; font-size: 12px; border-radius: 6px; border: none; cursor: pointer; }
+.chatbox-collapsed .chatbox-messages, .chatbox-collapsed .chatbox-input-area, .chatbox-collapsed .chatbox-bottom { display: none; }
+.typing-indicator { display: none; padding: 10px 14px; }
+.typing-indicator.visible { display: block; }
+.typing-dots span { display: inline-block; width: 6px; height: 6px; background: var(--muted); border-radius: 50%; margin: 0 2px; animation: bounce 1.2s infinite; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+@media (max-width: 960px) {
+  header { flex-direction: column; gap: 12px; }
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .overview-top { grid-template-columns: 1fr; }
+  .compact-status { grid-template-columns: repeat(2, 1fr); }
+  .grid { grid-template-columns: 1fr; }
+  .tables { grid-template-columns: 1fr; }
+  .chatbox-container { width: calc(100% - 24px); right: 12px; bottom: 12px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>HMS Clinic Operations Dashboard</h1>
+    <p>Reporting date: June 2026 | Executive status, operating risks, and priority actions</p>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn" onclick="openSettings()">⚙️ AI Settings</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="overview">
+    <div class="overview-top">
+      <div>
+        <h2>Executive Overview</h2>
+        <p>Portfolio status is operationally stable, with targeted management attention needed on Laguna structure, Monterey staffing, and Oceanside/Riverside installation closeout.</p>
+      </div>
+      <div>
+        <div class="summary-row"><strong>Operating clinics</strong><span>Chula Vista, Salinas, Madras, Laguna</span></div>
+        <div class="summary-row"><strong>Buildout clinics</strong><span>Oceanside, Riverside</span></div>
+        <div class="summary-row"><strong>Primary risks</strong><span>Laguna agreement, Monterey staffing, installation dependencies, Chula Vista capacity</span></div>
+        <div class="summary-row"><strong>Next focus</strong><span>Resolve agreements, confirm installation milestones, stabilize staffing, expand capacity</span></div>
+      </div>
+    </div>
+    <div class="compact-status" id="compactStatus"></div>
+  </section>
+
+  <div class="toolbar">
+    <input id="search" placeholder="Search clinic, person, vendor, risk, action">
+    <select id="statusFilter">
+      <option value="all">All statuses</option>
+      <option value="green">Active</option>
+      <option value="yellow">Attention / Buildout</option>
+      <option value="red">Critical</option>
+    </select>
+    <select id="categoryFilter">
+      <option value="all">All categories</option>
+      <option value="Operations">Operations</option>
+      <option value="Buildout">Buildout</option>
+    </select>
+    <button onclick="resetFilters()" style="background:white;color:var(--ink);border-color:var(--line);">Reset</button>
+  </div>
+
+  <section class="metrics" id="metrics"></section>
+
+  <h2 class="details-heading">Clinic Details</h2>
+  <section class="grid" id="clinicGrid"></section>
+
+  <section class="tables">
+    <div class="card">
+      <h2>Priority Action Tracker</h2>
+      <div id="actionsTable"></div>
+    </div>
+    <div class="card">
+      <h2>Recent Activity</h2>
+      <div id="activityTable"></div>
+    </div>
+  </section>
+
+  <div class="footer">
+    Data saved to browser localStorage. Click any clinic card for full details including equipment, issues, and vendor info.
+  </div>
+</main>
+
+<!-- Clinic Detail Modal -->
+<div id="clinicModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalTitle">Clinic Details</h2>
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-tabs" id="modalTabs"></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="settings-modal">
+  <div class="settings-content">
+    <h2>AI Assistant Settings</h2>
+    <p>Settings are stored in your browser only.</p>
+    <div class="field-row">
+      <div class="field-label">Claude API Key</div>
+      <input type="password" class="full-input" id="apiKeyInput" placeholder="sk-ant-...">
+      <div class="api-status" id="apiStatus"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">Personality &amp; Behavior</div>
+      <textarea id="personalityInput" class="full-input" rows="9" style="resize:vertical;font-family:inherit;font-size:13px;line-height:1.5"></textarea>
+      <div style="font-size:12px;color:var(--muted);margin-top:5px">Edit freely. The dashboard data is always included automatically — you don't need to reference it here.</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="saveSettings()">Save</button>
+      <button class="btn-secondary" onclick="resetPersonality()">Reset Personality</button>
+      <button class="btn-secondary" onclick="clearApiKey()">Clear Key</button>
+      <button class="btn-secondary" onclick="closeSettings()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Chatbox -->
+<div id="chatbox" class="chatbox-container">
+  <div class="chatbox-header">
+    <h3>AI Assistant</h3>
+    <div class="chatbox-header-actions">
+      <span class="ai-indicator fake" id="aiIndicator">LOCAL</span>
+      <button class="chatbox-toggle" onclick="toggleChatbox()">−</button>
+    </div>
+  </div>
+  <div class="chatbox-messages" id="chatboxMessages">
+    <div class="chatbox-message assistant">
+      <strong>Ready.</strong> Ask me anything about clinic status, or say things like:<br><br>
+      • "What's the status of Monterey?"<br>
+      • "Add issue to Oceanside: chamber 2 delivery delayed, priority high, owner Westaway"<br>
+      • "Update Chula Vista next action to expand to 3 chambers"<br>
+      • "Show open issues across all clinics"<br><br>
+      Set your Claude API key in ⚙️ AI Settings for full natural language support.
+    </div>
+  </div>
+  <div class="typing-indicator" id="typingIndicator">
+    <div class="typing-dots"><span></span><span></span><span></span></div>
+  </div>
+  <div class="chatbox-input-area">
+    <input type="text" id="chatboxInput" placeholder="Ask or update anything..." onkeypress="handleChatKeyPress(event)">
+    <button onclick="processChatCommand()">Send</button>
+  </div>
+  <div class="chatbox-bottom">
+    <button onclick="saveData()" style="background:#1f9d55;color:white;">Save</button>
+    <button onclick="resetData()" style="background:#f5f7fb;color:var(--ink);border:1px solid var(--line);">Reset</button>
+  </div>
+</div>
+
+<script>
+let DATA = {
+  "clinics": [
+    {
+      "name": "Chula Vista",
+      "status": "Active - High Capacity",
+      "indicator": "green",
+      "category": "Operations",
+      "operations": [
+        "Operating 10-hour shifts",
+        "Open 6 days per week",
+        "100% booked capacity",
+        "Operators split to reduce overtime exposure"
+      ],
+      "team": ["HMS Operations", "Clinic Operators"],
+      "risks": [
+        { "label": "Capacity constraints", "severity": "medium" },
+        { "label": "Overtime exposure", "severity": "medium" },
+        { "label": "Payroll compliance review", "severity": "medium" }
+      ],
+      "next_action": "Evaluate expansion opportunities or relocation to support 3-4 chamber growth.",
+      "equipment": [
+        { "name": "Chamber 1", "model": "Sechrist 3200", "serial": "SC-3200-001", "warranty": "2027-06", "vendor": "Sechrist Industries", "status": "operational" },
+        { "name": "Chamber 2", "model": "Sechrist 3200", "serial": "SC-3200-002", "warranty": "2027-06", "vendor": "Sechrist Industries", "status": "operational" },
+        { "name": "O2 Concentrator", "model": "Invacare Perfecto2", "serial": "INV-O2-041", "warranty": "2026-12", "vendor": "Invacare", "status": "operational" }
+      ],
+      "issues": [
+        { "id": 1, "description": "Payroll compliance review outstanding — need legal sign-off on operator split structure", "priority": "medium", "owner": "HMS Ops", "status": "open", "opened": "2026-05-15" }
+      ],
+      "vendors": [
+        { "name": "AT&T Business Fiber", "type": "ISP", "account": "ATT-CV-8821", "contact": "800-321-2000", "contract_notes": "500Mbps, contract through 2027-03" },
+        { "name": "Sechrist Industries", "type": "Equipment", "account": "SECH-0441", "contact": "714-579-8400", "contract_notes": "Service contract, annual renewal" }
+      ],
+      "notes": "Network: Cisco RV340 router at 192.168.1.1. Unmanaged 8-port switch in back closet. NVR (cameras) at 192.168.1.50. Chamber control panels on 192.168.2.x subnet.\n\nAccess: Key code 4821 for main door. Equipment room is second door on left.",
+      "action_items": [
+        { "task": "Get legal sign-off on operator split payroll structure", "owner": "HMS Ops", "due": "2026-06-30", "status": "open" },
+        { "task": "Survey space for 3rd chamber installation feasibility", "owner": "Westaway", "due": "2026-07-15", "status": "open" }
+      ]
+    },
+    {
+      "name": "Laguna",
+      "status": "Active - Structural Review",
+      "indicator": "yellow",
+      "category": "Operations",
+      "operations": [
+        "HMS currently supporting operations",
+        "Local business development efforts underway",
+        "Revenue allocation tracked through Account #6002",
+        "Office Ally and TMS billing integration active"
+      ],
+      "team": ["Bobby", "Stacey", "Michael Greenhalgh", "HMS Leadership"],
+      "risks": [
+        { "label": "No finalized operating agreement", "severity": "high" },
+        { "label": "Reimbursement allocation review", "severity": "medium" },
+        { "label": "MOU structure pending", "severity": "medium" }
+      ],
+      "next_action": "Finalize MOU or receivership structure and establish long-term operating framework.",
+      "equipment": [
+        { "name": "Chamber 1", "model": "Perry Sigma 34", "serial": "PS-34-LA01", "warranty": "2026-09", "vendor": "Perry Baromedical", "status": "operational" },
+        { "name": "Chamber 2", "model": "Perry Sigma 34", "serial": "PS-34-LA02", "warranty": "2026-09", "vendor": "Perry Baromedical", "status": "operational" }
+      ],
+      "issues": [
+        { "id": 1, "description": "Operating agreement with Skincredible not finalized — revenue allocation at risk", "priority": "high", "owner": "Michael Greenhalgh", "status": "open", "opened": "2026-04-01" },
+        { "id": 2, "description": "MOU structure needs legal review before month-end", "priority": "medium", "owner": "HMS Leadership", "status": "open", "opened": "2026-05-20" }
+      ],
+      "vendors": [
+        { "name": "TMS Billing Solutions", "type": "Billing", "account": "TMS-6002", "contact": "tms-support@tms.com", "contract_notes": "Integrated with Office Ally. Monthly fee." },
+        { "name": "Office Ally", "type": "EHR/Billing", "account": "OA-LAG-001", "contact": "support@officeally.com", "contract_notes": "Claims submission and ERA processing" }
+      ],
+      "notes": "Network: Basic Netgear router, DHCP default range. No dedicated equipment subnet.\n\nBilling contact: Stacey handles day-to-day Office Ally submissions. TMS handles insurance follow-up.",
+      "action_items": [
+        { "task": "Finalize MOU with Skincredible / Bobby", "owner": "Michael Greenhalgh", "due": "2026-06-20", "status": "open" },
+        { "task": "Reconcile Account #6002 revenue allocation YTD", "owner": "HMS Finance", "due": "2026-06-30", "status": "open" }
+      ]
+    },
+    {
+      "name": "Oceanside",
+      "status": "Buildout In Progress",
+      "indicator": "yellow",
+      "category": "Buildout",
+      "operations": [
+        "120-amp electrical installation completed",
+        "Chamber #1 onsite",
+        "Chamber #2 under vendor evaluation",
+        "Inspection pending confirmation"
+      ],
+      "team": ["Westaway", "Reimers", "Leddy", "Fox", "Electrical Contractor"],
+      "risks": [
+        { "label": "Inspection approval", "severity": "medium" },
+        { "label": "Chamber selection", "severity": "medium" },
+        { "label": "Installation scheduling", "severity": "medium" }
+      ],
+      "next_action": "Confirm inspection outcome and finalize Chamber #2 procurement.",
+      "equipment": [
+        { "name": "Chamber 1", "model": "Sechrist 2800", "serial": "SC-2800-OS1", "warranty": "2029-01", "vendor": "Sechrist Industries", "status": "installed - pending inspection" },
+        { "name": "Chamber 2", "model": "TBD", "serial": "—", "warranty": "—", "vendor": "Under evaluation", "status": "not ordered" },
+        { "name": "120A Electrical Panel", "model": "Square D QO", "serial": "—", "warranty": "—", "vendor": "Local Contractor", "status": "installed" }
+      ],
+      "issues": [
+        { "id": 1, "description": "City inspection not yet scheduled — blocking chamber pressurization test", "priority": "high", "owner": "Westaway", "status": "open", "opened": "2026-06-01" },
+        { "id": 2, "description": "Chamber 2 vendor not selected — 3 bids outstanding", "priority": "medium", "owner": "HMS Ops", "status": "open", "opened": "2026-05-28" }
+      ],
+      "vendors": [
+        { "name": "Sechrist Industries", "type": "Equipment", "account": "SECH-0441", "contact": "714-579-8400", "contract_notes": "Chamber 1 purchased. Chamber 2 bid pending." },
+        { "name": "Pacific Coast Electric", "type": "Electrical", "account": "PCE-OS22", "contact": "760-555-0192", "contract_notes": "120A install complete. Final punch-list outstanding." }
+      ],
+      "notes": "Site address: 1842 S Coast Hwy, Oceanside CA 92054.\n\nNetwork: ISP not yet contracted. Will need business fiber before opening.\n\nChamber room: ~400 sq ft, dedicated 120A circuit. Control panel location TBD pending Chamber 2 selection.",
+      "action_items": [
+        { "task": "Schedule city inspection", "owner": "Westaway", "due": "2026-06-18", "status": "open" },
+        { "task": "Select Chamber 2 vendor from bids", "owner": "HMS Ops", "due": "2026-06-22", "status": "open" },
+        { "task": "Contract ISP for business fiber", "owner": "Reimers", "due": "2026-07-01", "status": "open" }
+      ]
+    },
+    {
+      "name": "Salinas",
+      "status": "Active",
+      "indicator": "green",
+      "category": "Operations",
+      "operations": [
+        "Operating under Cypress Coast Hyperbarics",
+        "Included in consolidated reporting",
+        "Shared representative support planned"
+      ],
+      "team": ["Shared Representative", "HMS Billing Team", "Office Ally Team"],
+      "risks": [
+        { "label": "Shared coverage capacity", "severity": "medium" },
+        { "label": "Census growth monitoring", "severity": "medium" }
+      ],
+      "next_action": "Review representative workload and establish referral growth targets.",
+      "equipment": [
+        { "name": "Chamber 1", "model": "Sechrist 2800", "serial": "SC-2800-SAL1", "warranty": "2027-04", "vendor": "Sechrist Industries", "status": "operational" },
+        { "name": "O2 System", "model": "Chart Trifecta", "serial": "CHT-TRI-081", "warranty": "2026-10", "vendor": "Chart Industries", "status": "operational" }
+      ],
+      "issues": [],
+      "vendors": [
+        { "name": "AT&T Business", "type": "ISP", "account": "ATT-SAL-5512", "contact": "800-321-2000", "contract_notes": "250Mbps fiber, contract through 2026-11" },
+        { "name": "Office Ally", "type": "EHR/Billing", "account": "OA-SAL-002", "contact": "support@officeally.com", "contract_notes": "Claims and ERA" }
+      ],
+      "notes": "Operating as Cypress Coast Hyperbarics — separate NPI, consolidated into HMS reporting.\n\nNetwork: AT&T fiber. Cisco router. Equipment on isolated VLAN.",
+      "action_items": [
+        { "task": "Set referral growth targets for Q3", "owner": "Shared Rep", "due": "2026-07-01", "status": "open" }
+      ]
+    },
+    {
+      "name": "Monterey",
+      "status": "Staffing Risk",
+      "indicator": "red",
+      "category": "Operations",
+      "operations": [
+        "Sydney providing dual-role coverage",
+        "Technician recruitment in progress",
+        "Census recovery initiatives underway"
+      ],
+      "team": ["Sydney", "Recruiting Support"],
+      "risks": [
+        { "label": "Staffing gap", "severity": "high" },
+        { "label": "Appointment reliability", "severity": "high" },
+        { "label": "Census growth", "severity": "medium" }
+      ],
+      "next_action": "Recruit replacement technician and stabilize clinic operations.",
+      "equipment": [
+        { "name": "Chamber 1", "model": "Sechrist 2800", "serial": "SC-2800-MON1", "warranty": "2027-08", "vendor": "Sechrist Industries", "status": "operational" },
+        { "name": "O2 Concentrator", "model": "Invacare Perfecto2", "serial": "INV-O2-088", "warranty": "2026-08", "vendor": "Invacare", "status": "operational — warranty expiring" }
+      ],
+      "issues": [
+        { "id": 1, "description": "No dedicated chamber technician — Sydney covering front desk + chamber ops, unsustainable", "priority": "high", "owner": "HMS Ops", "status": "open", "opened": "2026-05-01" },
+        { "id": 2, "description": "O2 concentrator warranty expires Aug 2026 — need renewal or replacement decision", "priority": "medium", "owner": "HMS Ops", "status": "open", "opened": "2026-06-10" }
+      ],
+      "vendors": [
+        { "name": "Spectrum Business", "type": "ISP", "account": "SPEC-MON-3301", "contact": "833-267-6094", "contract_notes": "200Mbps cable. Month-to-month." },
+        { "name": "Invacare", "type": "Equipment / O2", "account": "INV-MON-088", "contact": "800-333-6900", "contract_notes": "O2 concentrator. Warranty ends Aug 2026." }
+      ],
+      "notes": "Network: Spectrum cable. Router in front office closet (192.168.0.1). Single network — no VLAN separation.\n\nStaffing note: Sydney is the only employee on-site. Any absence closes the clinic. Priority hire needed.",
+      "action_items": [
+        { "task": "Post technician job listing (Indeed + LinkedIn)", "owner": "HMS HR", "due": "2026-06-16", "status": "open" },
+        { "task": "Decide O2 concentrator: renew warranty or replace", "owner": "HMS Ops", "due": "2026-07-15", "status": "open" },
+        { "task": "Interview technician candidates", "owner": "HMS HR", "due": "2026-06-30", "status": "open" }
+      ]
+    },
+    {
+      "name": "Riverside",
+      "status": "Buildout In Progress",
+      "indicator": "yellow",
+      "category": "Buildout",
+      "operations": [
+        "Chambers #1 and #2 onsite",
+        "Air/O2 equipment bids under review",
+        "Flooring approval pending",
+        "Electrical proposal pending"
+      ],
+      "team": ["Westaway", "Tim", "Flooring Contractor", "Air/O2 Vendors"],
+      "risks": [
+        { "label": "Flooring approval", "severity": "medium" },
+        { "label": "Electrical proposal", "severity": "medium" },
+        { "label": "Equipment selection", "severity": "medium" }
+      ],
+      "next_action": "Approve flooring proposal and finalize installation schedule.",
+      "equipment": [
+        { "name": "Chamber 1", "model": "Sechrist 3200", "serial": "SC-3200-RIV1", "warranty": "2029-03", "vendor": "Sechrist Industries", "status": "onsite - not installed" },
+        { "name": "Chamber 2", "model": "Sechrist 3200", "serial": "SC-3200-RIV2", "warranty": "2029-03", "vendor": "Sechrist Industries", "status": "onsite - not installed" },
+        { "name": "Air Compressor", "model": "TBD", "serial": "—", "warranty": "—", "vendor": "Bid pending", "status": "not ordered" },
+        { "name": "O2 System", "model": "TBD", "serial": "—", "warranty": "—", "vendor": "Bid pending", "status": "not ordered" }
+      ],
+      "issues": [
+        { "id": 1, "description": "Flooring contractor proposal received — awaiting Tim / HMS approval to proceed", "priority": "medium", "owner": "Tim / HMS", "status": "open", "opened": "2026-06-05" },
+        { "id": 2, "description": "Electrical proposal from contractor not yet submitted", "priority": "medium", "owner": "Westaway", "status": "open", "opened": "2026-06-08" }
+      ],
+      "vendors": [
+        { "name": "Sechrist Industries", "type": "Equipment", "account": "SECH-0441", "contact": "714-579-8400", "contract_notes": "Both chambers purchased and delivered." },
+        { "name": "Rivera Flooring", "type": "Contractor", "account": "—", "contact": "951-555-0188", "contract_notes": "Bid submitted, awaiting approval" }
+      ],
+      "notes": "Site: 3720 University Ave, Riverside CA 92501.\n\nNetwork: ISP not yet contracted. Will need business fiber.\n\nBoth chambers are in storage on-site. Installation sequence: flooring → electrical → chamber placement → air/O2 → inspection.",
+      "action_items": [
+        { "task": "Approve flooring proposal", "owner": "Tim / HMS", "due": "2026-06-17", "status": "open" },
+        { "task": "Get electrical proposal from contractor", "owner": "Westaway", "due": "2026-06-20", "status": "open" },
+        { "task": "Select Air/O2 vendor from bids", "owner": "HMS Ops", "due": "2026-06-25", "status": "open" },
+        { "task": "Contract ISP for business fiber", "owner": "HMS Ops", "due": "2026-07-01", "status": "open" }
+      ]
+    },
+    {
+      "name": "Madras",
+      "status": "Active",
+      "indicator": "green",
+      "category": "Operations",
+      "operations": [
+        "Equipment maintenance completed",
+        "Four active patients",
+        "Two insurance cases",
+        "TMS billing active"
+      ],
+      "team": ["Deb", "TMS Billing"],
+      "risks": [
+        { "label": "Patient volume growth", "severity": "medium" },
+        { "label": "Insurance collections", "severity": "medium" }
+      ],
+      "next_action": "Increase patient census and monitor insurance collections performance.",
+      "equipment": [
+        { "name": "Chamber 1", "model": "Sechrist 2800", "serial": "SC-2800-MAD1", "warranty": "2028-02", "vendor": "Sechrist Industries", "status": "operational" },
+        { "name": "O2 Concentrator", "model": "Invacare Perfecto2", "serial": "INV-O2-122", "warranty": "2027-02", "vendor": "Invacare", "status": "operational" }
+      ],
+      "issues": [
+        { "id": 1, "description": "Two insurance claims >45 days outstanding — follow-up needed", "priority": "medium", "owner": "Deb / TMS", "status": "open", "opened": "2026-05-25" }
+      ],
+      "vendors": [
+        { "name": "TMS Billing Solutions", "type": "Billing", "account": "TMS-MAD-004", "contact": "tms-support@tms.com", "contract_notes": "Handles all insurance billing and follow-up" },
+        { "name": "CenturyLink / Lumen", "type": "ISP", "account": "CLK-MAD-7721", "contact": "877-453-8353", "contract_notes": "100Mbps DSL. Month-to-month." }
+      ],
+      "notes": "Small clinic, Deb is solo operator. Chamber room is ~250 sq ft.\n\nNetwork: CenturyLink DSL. Basic router. Single network.\n\nPatient notes: 2 self-pay, 2 insurance (BCBS and Medicare). TMS handles all claims.",
+      "action_items": [
+        { "task": "Follow up on 2 outstanding insurance claims >45 days", "owner": "Deb / TMS", "due": "2026-06-20", "status": "open" },
+        { "task": "Recruit 2 additional patients for Q3", "owner": "Deb", "due": "2026-07-31", "status": "open" }
+      ]
+    }
+  ],
+  "actions": [
+    { "priority": "High", "action": "Finalize Laguna operating structure", "owner": "Michael / Bobby / HMS", "clinic": "Laguna", "status": "Open" },
+    { "priority": "High", "action": "Confirm Oceanside inspection", "owner": "Westaway / Inspector", "clinic": "Oceanside", "status": "Open" },
+    { "priority": "High", "action": "Approve Riverside flooring", "owner": "HMS / Tim", "clinic": "Riverside", "status": "Open" },
+    { "priority": "High", "action": "Recruit Monterey technician", "owner": "HMS / Sydney", "clinic": "Monterey", "status": "Open" },
+    { "priority": "Medium", "action": "Select Oceanside Chamber #2", "owner": "HMS / Vendors", "clinic": "Oceanside", "status": "Open" },
+    { "priority": "Medium", "action": "Select Riverside Air/O2 Vendor", "owner": "HMS", "clinic": "Riverside", "status": "Open" },
+    { "priority": "Medium", "action": "Monitor Madras insurance collections", "owner": "Deb / TMS", "clinic": "Madras", "status": "Active" },
+    { "priority": "Medium", "action": "Review shared representative coverage", "owner": "HMS", "clinic": "Salinas / Monterey", "status": "Active" },
+    { "priority": "Medium", "action": "Evaluate Chula Vista expansion", "owner": "HMS Operations", "clinic": "Chula Vista", "status": "Active" }
+  ],
+  "recent_activity": [
+    { "time": "Jun 15", "activity": "Oceanside 120A electrical installation confirmed complete" },
+    { "time": "Jun 14", "activity": "Monterey technician candidate interview scheduled" },
+    { "time": "Jun 13", "activity": "Riverside flooring bid received from Rivera Flooring" },
+    { "time": "Jun 12", "activity": "Laguna MOU draft sent to legal for review" },
+    { "time": "Jun 10", "activity": "Madras equipment maintenance completed" }
+  ]
+};
+
+// ===== RENDER FUNCTIONS =====
+
+function renderCompactStatus() {
+  const statusLabel = { green: "Active", yellow: "Attention", red: "Critical" };
+  document.getElementById("compactStatus").innerHTML = DATA.clinics.map(c => `
+    <div class="status-tile" onclick="showClinicModal('${c.name}')">
+      <div class="clinic-name">${c.name}</div>
+      <div class="clinic-status ${c.indicator}">${statusLabel[c.indicator]}</div>
+      <div style="font-size:11px;color:var(--muted)">${c.category}</div>
+    </div>
+  `).join("");
+}
+
+function severityClass(v) { return v === "high" ? "red" : v === "medium" ? "yellow" : "green"; }
+function statusIcon(i) { return i === "green" ? "Active" : i === "yellow" ? "Attention" : "Critical"; }
+function metricCard(num, label, cls) {
+  return `<div class="metric"><div class="num ${cls}">${num}</div><div class="label">${label}</div></div>`;
+}
+
+function renderMetrics() {
+  const active = DATA.clinics.filter(c => c.indicator === "green").length;
+  const buildout = DATA.clinics.filter(c => c.category === "Buildout").length;
+  const critical = DATA.clinics.filter(c => c.indicator === "red").length;
+  const highActions = DATA.actions.filter(a => a.priority === "High").length;
+  const openIssues = DATA.clinics.reduce((sum, c) => sum + (c.issues || []).filter(i => i.status === "open").length, 0);
+  document.getElementById("metrics").innerHTML = [
+    metricCard(active, "Active Clinics", "green"),
+    metricCard(buildout, "Buildout Clinics", "yellow"),
+    metricCard(critical, "Critical Risk Clinics", "red"),
+    metricCard(highActions, "High Priority Actions", "red"),
+    metricCard(openIssues, "Open Issues", "yellow"),
+  ].join("");
+}
+
+function clinicMatches(clinic, query) {
+  if (!query) return true;
+  return JSON.stringify(clinic).toLowerCase().includes(query.toLowerCase());
+}
+
+function renderClinics() {
+  const q = document.getElementById("search").value.trim();
+  const status = document.getElementById("statusFilter").value;
+  const category = document.getElementById("categoryFilter").value;
+  const filtered = DATA.clinics.filter(c =>
+    (status === "all" || c.indicator === status) &&
+    (category === "all" || c.category === category) &&
+    clinicMatches(c, q)
+  );
+  const html = filtered.map(c => {
+    const openIssues = (c.issues || []).filter(i => i.status === "open").length;
+    const highIssues = (c.issues || []).filter(i => i.status === "open" && i.priority === "high").length;
+    const issuesBadge = openIssues > 0
+      ? `<span class="badge ${highIssues > 0 ? "red" : "yellow"}">${openIssues} issue${openIssues > 1 ? "s" : ""}</span>`
+      : "";
+    return `
+      <article class="card" onclick="showClinicModal('${c.name}')">
+        <h2>${c.name}</h2>
+        <span class="badge ${c.indicator}">${statusIcon(c.indicator)} — ${c.status}</span>
+        <span class="badge blue">${c.category}</span>
+        ${issuesBadge}
+        <div class="section-title">Operations</div>
+        <ul>${c.operations.slice(0,3).map(x => `<li>${x}</li>`).join("")}</ul>
+        <div class="section-title">Key Risks</div>
+        <ul>${c.risks.map(r => `<li><span class="${severityClass(r.severity)}">${r.severity.toUpperCase()}</span> — ${r.label}</li>`).join("")}</ul>
+        <div class="next"><strong>Next:</strong> ${c.next_action}</div>
+      </article>
+    `;
+  }).join("");
+  document.getElementById("clinicGrid").innerHTML = html || `<div class="card">No clinics match filters.</div>`;
+}
+
+// ===== MODAL =====
+
+let currentModalTab = "overview";
+
+function showClinicModal(clinicName) {
+  const clinic = DATA.clinics.find(c => c.name === clinicName);
+  if (!clinic) return;
+  document.getElementById("modalTitle").textContent = clinic.name;
+  currentModalTab = "overview";
+  renderModal(clinic);
+  document.getElementById("clinicModal").classList.add("active");
+}
+
+function renderModal(clinic) {
+  const tabs = [
+    { id: "overview", label: "Overview" },
+    { id: "issues", label: `Issues ${(clinic.issues||[]).filter(i=>i.status==="open").length > 0 ? "("+((clinic.issues||[]).filter(i=>i.status==="open").length)+")" : ""}` },
+    { id: "equipment", label: "Equipment" },
+    { id: "vendors", label: "Vendors" },
+    { id: "notes", label: "Notes & Tasks" },
+  ];
+  document.getElementById("modalTabs").innerHTML = tabs.map(t =>
+    `<button class="tab-btn ${currentModalTab===t.id?"active":""}" onclick="switchTab('${clinic.name}','${t.id}')">${t.label}</button>`
+  ).join("");
+  renderModalTab(clinic, currentModalTab);
+}
+
+function switchTab(clinicName, tabId) {
+  currentModalTab = tabId;
+  const clinic = DATA.clinics.find(c => c.name === clinicName);
+  renderModal(clinic);
+}
+
+function renderModalTab(clinic, tab) {
+  let html = "";
+  if (tab === "overview") {
+    html = `
+      <div class="modal-section">
+        <h3>Status</h3>
+        <p><span class="badge ${clinic.indicator}">${{green:"Active",yellow:"Attention",red:"Critical"}[clinic.indicator]}</span>
+        <span class="badge blue">${clinic.category}</span></p>
+        <p style="font-size:14px;margin-top:4px;">${clinic.status}</p>
+      </div>
+      <div class="modal-section">
+        <h3>Operations</h3>
+        <ul>${clinic.operations.map(x => `<li>${x}</li>`).join("")}</ul>
+      </div>
+      <div class="modal-section">
+        <h3>Team / Vendors</h3>
+        <ul>${clinic.team.map(x => `<li>${x}</li>`).join("")}</ul>
+      </div>
+      <div class="modal-section">
+        <h3>Key Risks</h3>
+        <ul>${clinic.risks.map(r => `<li><span class="${severityClass(r.severity)}">${r.severity.toUpperCase()}</span> — ${r.label}</li>`).join("")}</ul>
+      </div>
+      <div class="modal-section">
+        <h3>Next Action</h3>
+        <div class="next"><strong>${clinic.next_action}</strong></div>
+      </div>`;
+  } else if (tab === "issues") {
+    const open = (clinic.issues||[]).filter(i=>i.status==="open");
+    const closed = (clinic.issues||[]).filter(i=>i.status!=="open");
+    html = `<div class="modal-section">
+      <h3>Open Issues (${open.length})</h3>
+      ${open.length === 0 ? `<div class="empty-state">No open issues.</div>` :
+        open.map(i => `
+          <div class="item-card">
+            <div class="item-card-header">
+              <div class="item-card-title">${i.description}</div>
+              <span class="badge ${severityClass(i.priority)}">${i.priority.toUpperCase()}</span>
+            </div>
+            <div class="item-meta">
+              <span>Owner: ${i.owner}</span>
+              <span>Opened: ${i.opened}</span>
+              <span>Status: ${i.status}</span>
+            </div>
+          </div>`).join("")}
+    </div>
+    ${closed.length > 0 ? `<div class="modal-section"><h3>Resolved (${closed.length})</h3>
+      ${closed.map(i=>`<div class="item-card" style="opacity:0.6"><div class="item-card-title">${i.description}</div><div class="item-meta"><span>${i.status}</span></div></div>`).join("")}
+    </div>` : ""}`;
+  } else if (tab === "equipment") {
+    const eq = clinic.equipment || [];
+    html = `<div class="modal-section">
+      <h3>Equipment Inventory (${eq.length} items)</h3>
+      ${eq.length === 0 ? `<div class="empty-state">No equipment recorded.</div>` :
+        eq.map(e => `
+          <div class="item-card">
+            <div class="item-card-header">
+              <div class="item-card-title">${e.name}</div>
+              <span class="badge ${e.status==="operational"?"green":e.status.includes("not")?"red":"yellow"}">${e.status}</span>
+            </div>
+            <div class="item-meta">
+              <span>Model: ${e.model}</span>
+              <span>Serial: ${e.serial}</span>
+            </div>
+            <div class="item-meta">
+              <span>Vendor: ${e.vendor}</span>
+              <span>Warranty: ${e.warranty}</span>
+            </div>
+          </div>`).join("")}
+    </div>`;
+  } else if (tab === "vendors") {
+    const v = clinic.vendors || [];
+    html = `<div class="modal-section">
+      <h3>Vendors & Service Providers (${v.length})</h3>
+      ${v.length === 0 ? `<div class="empty-state">No vendors recorded.</div>` :
+        v.map(vn => `
+          <div class="item-card">
+            <div class="item-card-header">
+              <div class="item-card-title">${vn.name}</div>
+              <span class="badge blue">${vn.type}</span>
+            </div>
+            <div class="item-meta">
+              <span>Account: ${vn.account}</span>
+              <span>Contact: ${vn.contact}</span>
+            </div>
+            <div style="font-size:13px;margin-top:6px;color:var(--muted)">${vn.contract_notes}</div>
+          </div>`).join("")}
+    </div>`;
+  } else if (tab === "notes") {
+    const items = clinic.action_items || [];
+    const open = items.filter(i=>i.status==="open");
+    const done = items.filter(i=>i.status!=="open");
+    html = `
+      <div class="modal-section">
+        <h3>Site Notes</h3>
+        <div class="notes-box">${clinic.notes || "No site notes recorded."}</div>
+      </div>
+      <div class="modal-section">
+        <h3>Action Items (${open.length} open)</h3>
+        ${open.length === 0 ? `<div class="empty-state">No open action items.</div>` :
+          open.map(a => `
+            <div class="action-item-row">
+              <div class="action-item-task">${a.task}</div>
+              <div class="action-item-meta">${a.owner} · ${a.due}</div>
+            </div>`).join("")}
+        ${done.length > 0 ? `<div style="margin-top:12px;opacity:0.6">${done.map(a=>`<div class="action-item-row"><div class="action-item-task" style="text-decoration:line-through">${a.task}</div><div class="action-item-meta">${a.status}</div></div>`).join("")}</div>` : ""}
+      </div>`;
+  }
+  document.getElementById("modalBody").innerHTML = html;
+}
+
+function closeModal() {
+  document.getElementById("clinicModal").classList.remove("active");
+}
+document.getElementById("clinicModal").addEventListener("click", function(e) { if (e.target===this) closeModal(); });
+document.addEventListener("keydown", function(e) { if (e.key==="Escape") { closeModal(); closeSettings(); } });
+
+// ===== ACTIONS + ACTIVITY =====
+
+function renderActions() {
+  const rows = DATA.actions.map(a => `
+    <tr>
+      <td><span class="${a.priority==="High"?"red":"yellow"}">${a.priority}</span></td>
+      <td>${a.action}</td>
+      <td>${a.owner}</td>
+      <td>${a.clinic}</td>
+      <td>${a.status}</td>
+    </tr>`).join("");
+  document.getElementById("actionsTable").innerHTML = `
+    <table><thead><tr><th>Priority</th><th>Action</th><th>Owner</th><th>Clinic</th><th>Status</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+function renderActivity() {
+  const rows = DATA.recent_activity.map(a => `<tr><td style="white-space:nowrap">${a.time}</td><td>${a.activity}</td></tr>`).join("");
+  document.getElementById("activityTable").innerHTML = `
+    <table><thead><tr><th>Date</th><th>Activity</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+function resetFilters() {
+  document.getElementById("search").value = "";
+  document.getElementById("statusFilter").value = "all";
+  document.getElementById("categoryFilter").value = "all";
+  renderClinics();
+}
+
+// ===== SETTINGS =====
+
+const DEFAULT_PERSONALITY = `You are a direct, no-fluff operations assistant for the HMS HBOT clinic portfolio.
+
+Rules:
+- Be concise — short sentences, no filler words or preamble.
+- Act immediately. Do not ask clarifying questions before making an update.
+- After every response, proactively flag 1-2 risks or overdue items you notice in the data that the user did not mention. Label them "⚠ Noticed:".
+- Use plain language. No corporate speak.
+- When summarizing status, lead with the problem, not the background.`;
+
+function openSettings() {
+  const key = localStorage.getItem("claudeApiKey") || "";
+  document.getElementById("apiKeyInput").value = key ? "sk-ant-..." : "";
+  document.getElementById("personalityInput").value = localStorage.getItem("claudePersonality") || DEFAULT_PERSONALITY;
+  updateApiStatus();
+  document.getElementById("settingsModal").classList.add("active");
+}
+function closeSettings() { document.getElementById("settingsModal").classList.remove("active"); }
+function saveSettings() {
+  const key = document.getElementById("apiKeyInput").value.trim();
+  if (key && key !== "sk-ant-...") {
+    localStorage.setItem("claudeApiKey", key);
+  }
+  const personality = document.getElementById("personalityInput").value.trim();
+  if (personality) localStorage.setItem("claudePersonality", personality);
+  updateApiStatus();
+  updateAiIndicator();
+  closeSettings();
+  showNotification("Settings saved.", "success");
+}
+function resetPersonality() {
+  document.getElementById("personalityInput").value = DEFAULT_PERSONALITY;
+}
+function clearApiKey() {
+  localStorage.removeItem("claudeApiKey");
+  document.getElementById("apiKeyInput").value = "";
+  updateApiStatus();
+  updateAiIndicator();
+  showNotification("API key cleared.", "success");
+}
+function updateApiStatus() {
+  const el = document.getElementById("apiStatus");
+  const has = !!localStorage.getItem("claudeApiKey");
+  el.className = "api-status " + (has ? "set" : "unset");
+  el.textContent = has ? "✓ API key is set" : "No key set — using local command parser";
+}
+function updateAiIndicator() {
+  const el = document.getElementById("aiIndicator");
+  const has = !!localStorage.getItem("claudeApiKey");
+  el.textContent = has ? "CLAUDE" : "LOCAL";
+  el.className = "ai-indicator " + (has ? "real" : "fake");
+}
+
+// ===== CHATBOX =====
+
+let chatboxMinimized = false;
+
+function toggleChatbox() {
+  chatboxMinimized = !chatboxMinimized;
+  const chatbox = document.getElementById("chatbox");
+  const btn = chatbox.querySelector(".chatbox-toggle");
+  chatbox.classList.toggle("chatbox-collapsed", chatboxMinimized);
+  btn.textContent = chatboxMinimized ? "+" : "−";
+}
+
+function handleChatKeyPress(e) { if (e.key==="Enter") processChatCommand(); }
+
+function addChatMessage(sender, message) {
+  const div = document.createElement("div");
+  div.className = "chatbox-message " + sender;
+  div.innerHTML = message;
+  document.getElementById("chatboxMessages").appendChild(div);
+  document.getElementById("chatboxMessages").scrollTop = 99999;
+}
+
+async function processChatCommand() {
+  const input = document.getElementById("chatboxInput");
+  const command = input.value.trim();
+  if (!command) return;
+  input.value = "";
+  addChatMessage("user", command);
+
+  const apiKey = localStorage.getItem("claudeApiKey");
+  if (apiKey) {
+    await callClaude(command, apiKey);
+  } else {
+    const response = parseCommandLocally(command);
+    setTimeout(() => addChatMessage("assistant", response), 300);
+  }
+}
+
+async function callClaude(userMessage, apiKey) {
+  const typingEl = document.getElementById("typingIndicator");
+  typingEl.classList.add("visible");
+
+  const personality = localStorage.getItem("claudePersonality") || DEFAULT_PERSONALITY;
+  const systemPrompt = `${personality}
+
+--- DASHBOARD DATA ---
+${JSON.stringify(DATA, null, 2)}
+
+--- UPDATE COMMANDS ---
+When making changes, append one or more <cmd>...</cmd> blocks (valid JSON) after your response text.
+
+Available actions:
+- update_clinic_field: {clinic, field, value} — field can be: indicator, status, next_action, notes, category
+- add_issue: {clinic, issue: {description, priority, owner, status, opened}}
+- close_issue: {clinic, issue_description}
+- add_equipment: {clinic, equipment: {name, model, serial, warranty, vendor, status}}
+- add_vendor: {clinic, vendor: {name, type, account, contact, contract_notes}}
+- add_action_item: {clinic, item: {task, owner, due, status}}
+- close_action_item: {clinic, task}
+- add_activity: {activity}
+- add_global_action: {priority, action, owner, clinic, status}
+
+For read-only questions, no <cmd> block needed. Always include add_activity when you make a change.`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userMessage }]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    const text = data.content[0].text;
+
+    // Extract and execute commands
+    const cmdMatches = [...text.matchAll(/<cmd>([\s\S]*?)<\/cmd>/g)];
+    const displayText = text.replace(/<cmd>[\s\S]*?<\/cmd>/g, "").trim();
+
+    typingEl.classList.remove("visible");
+    addChatMessage("assistant", displayText || "Done.");
+
+    for (const match of cmdMatches) {
+      try {
+        const cmd = JSON.parse(match[1]);
+        executeCommand(cmd);
+      } catch(e) {
+        console.error("Command parse error:", e, match[1]);
+      }
+    }
+
+    if (cmdMatches.length > 0) {
+      rerenderAll();
+      saveData();
+    }
+  } catch(e) {
+    typingEl.classList.remove("visible");
+    addChatMessage("assistant", `Error: ${e.message}. Check your API key in ⚙️ Settings.`);
+  }
+}
+
+function executeCommand(cmd) {
+  const clinic = cmd.clinic ? DATA.clinics.find(c => c.name.toLowerCase() === cmd.clinic.toLowerCase()) : null;
+
+  switch(cmd.action) {
+    case "update_clinic_field":
+      if (clinic && cmd.field && cmd.value !== undefined) {
+        clinic[cmd.field] = cmd.value;
+      }
+      break;
+    case "add_issue":
+      if (clinic && cmd.issue) {
+        if (!clinic.issues) clinic.issues = [];
+        clinic.issues.push({ id: Date.now(), ...cmd.issue });
+      }
+      break;
+    case "close_issue":
+      if (clinic && cmd.issue_description) {
+        (clinic.issues || []).forEach(i => {
+          if (i.description.toLowerCase().includes(cmd.issue_description.toLowerCase())) {
+            i.status = "resolved";
+          }
+        });
+      }
+      break;
+    case "add_equipment":
+      if (clinic && cmd.equipment) {
+        if (!clinic.equipment) clinic.equipment = [];
+        clinic.equipment.push(cmd.equipment);
+      }
+      break;
+    case "add_vendor":
+      if (clinic && cmd.vendor) {
+        if (!clinic.vendors) clinic.vendors = [];
+        clinic.vendors.push(cmd.vendor);
+      }
+      break;
+    case "add_action_item":
+      if (clinic && cmd.item) {
+        if (!clinic.action_items) clinic.action_items = [];
+        clinic.action_items.push({ status: "open", ...cmd.item });
+      }
+      break;
+    case "close_action_item":
+      if (clinic && cmd.task) {
+        (clinic.action_items || []).forEach(a => {
+          if (a.task.toLowerCase().includes(cmd.task.toLowerCase())) {
+            a.status = "done";
+          }
+        });
+      }
+      break;
+    case "add_activity":
+      if (cmd.activity) {
+        DATA.recent_activity.unshift({ time: "Jun 15", activity: cmd.activity });
+        if (DATA.recent_activity.length > 10) DATA.recent_activity.pop();
+      }
+      break;
+    case "add_global_action":
+      DATA.actions.push({ priority: cmd.priority || "Medium", action: cmd.action, owner: cmd.owner || "HMS", clinic: cmd.clinic || "All", status: cmd.status || "Open" });
+      break;
+  }
+}
+
+// Local fallback parser (no API key)
+function parseCommandLocally(command) {
+  const cmd = command.toLowerCase();
+
+  if (cmd.includes("help") || cmd === "?") {
+    return `<strong>Commands (local mode):</strong><br><br>
+• Update [clinic] status to [green/yellow/red]<br>
+• Change [clinic] next action to "..."<br>
+• Add issue to [clinic]: [description], priority [high/medium]<br>
+• Add risk to [clinic]: [label], severity [high/medium]<br>
+• Show [clinic] details<br>
+• List clinics<br><br>
+<em>Set a Claude API key in ⚙️ Settings for full natural language support.</em>`;
+  }
+
+  if (cmd.includes("list clinic")) {
+    return "Clinics: " + DATA.clinics.map(c => c.name).join(", ");
+  }
+
+  let target = DATA.clinics.find(c => cmd.includes(c.name.toLowerCase()));
+  if (!target) return `Clinic not found. Type "list clinics" to see all clinics, or set a Claude API key for natural language.`;
+
+  if (cmd.includes("status to green")) { target.indicator="green"; target.status="Active"; rerenderAll(); return `✓ ${target.name} status → Active`; }
+  if (cmd.includes("status to yellow")) { target.indicator="yellow"; target.status="Attention Needed"; rerenderAll(); return `✓ ${target.name} status → Attention`; }
+  if (cmd.includes("status to red")) { target.indicator="red"; target.status="Critical"; rerenderAll(); return `✓ ${target.name} status → Critical`; }
+
+  const nextMatch = command.match(/next action to ["'](.+?)["']/i) || command.match(/next action to (.+)/i);
+  if (nextMatch) { target.next_action = nextMatch[1]; rerenderAll(); return `✓ ${target.name} next action updated.`; }
+
+  const issueMatch = command.match(/add issue to .+?: (.+?), priority (\w+)/i);
+  if (issueMatch) {
+    if (!target.issues) target.issues = [];
+    target.issues.push({ id: Date.now(), description: issueMatch[1], priority: issueMatch[2], owner: "TBD", status: "open", opened: "2026-06-15" });
+    rerenderAll();
+    return `✓ Added issue to ${target.name}: "${issueMatch[1]}"`;
+  }
+
+  const riskMatch = command.match(/add risk to .+?: (.+?), severity (\w+)/i);
+  if (riskMatch) { target.risks.push({ label: riskMatch[1], severity: riskMatch[2] }); rerenderAll(); return `✓ Added risk to ${target.name}.`; }
+
+  return `Recognized clinic: ${target.name}. Command not parsed. Set a Claude API key for full support.`;
+}
+
+function rerenderAll() {
+  renderCompactStatus();
+  renderMetrics();
+  renderClinics();
+  renderActions();
+  renderActivity();
+}
+
+// ===== PERSISTENCE =====
+
+function saveData() {
+  try {
+    localStorage.setItem("hmsDashboardData", JSON.stringify(DATA));
+    showNotification("Saved.", "success");
+  } catch(e) {
+    showNotification("Save error: " + e.message, "error");
+  }
+}
+
+function loadLocalOverrides(base) {
+  try {
+    const saved = localStorage.getItem("hmsDashboardData");
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return base;
+}
+
+function resetData() {
+  if (confirm("Reset all changes and reload default data?")) {
+    localStorage.removeItem("hmsDashboardData");
+    location.reload();
+  }
+}
+
+function showNotification(message, type) {
+  const n = document.createElement("div");
+  n.style.cssText = `position:fixed;top:20px;right:20px;padding:10px 18px;border-radius:8px;color:white;font-weight:bold;z-index:10000;background:${type==="success"?"#1f9d55":"#c53030"}`;
+  n.textContent = message;
+  document.body.appendChild(n);
+  setTimeout(() => { n.style.opacity="0"; n.style.transition="opacity 0.4s"; setTimeout(()=>n.remove(),400); }, 2500);
+}
+
+// ===== INIT =====
+
+async function initializeDashboard() {
+  DATA = loadLocalOverrides(DATA);
+  document.getElementById("search").addEventListener("input", renderClinics);
+  document.getElementById("statusFilter").addEventListener("change", renderClinics);
+  document.getElementById("categoryFilter").addEventListener("change", renderClinics);
+  updateAiIndicator();
+  rerenderAll();
+}
+
+window.addEventListener("DOMContentLoaded", initializeDashboard);
+</script>
+</body>
+</html>
