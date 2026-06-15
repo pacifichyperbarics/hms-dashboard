@@ -841,7 +841,7 @@ function updateAiIndicator() {
 
 // ===== CHATBOX =====
 
-let chatboxMinimized = false;
+let chatboxMinimized = true;
 
 function toggleChatbox() {
   chatboxMinimized = !chatboxMinimized;
@@ -1099,6 +1099,10 @@ async function initializeDashboard() {
   document.getElementById("categoryFilter").addEventListener("change", renderClinics);
   updateAiIndicator();
   rerenderAll();
+  // Start chatbox minimized
+  const chatbox = document.getElementById("chatbox");
+  chatbox.classList.add("chatbox-collapsed");
+  chatbox.querySelector(".chatbox-toggle").textContent = "+";
 }
 
 window.addEventListener("DOMContentLoaded", initializeDashboard);
