@@ -311,7 +311,8 @@ let DATA = {
         { "name": "O2 Concentrator", "model": "Invacare Perfecto2", "serial": "INV-O2-041", "warranty": "2026-12", "vendor": "Invacare", "status": "operational" }
       ],
       "issues": [
-        { "id": 1, "description": "Payroll compliance review outstanding — need legal sign-off on operator split structure", "priority": "medium", "owner": "HMS Ops", "status": "open", "opened": "2026-05-15" }
+        { "id": 1, "description": "Payroll compliance review outstanding — need legal sign-off on operator split structure", "priority": "medium", "owner": "HMS Ops", "status": "open", "opened": "2026-05-15" },
+        { "id": 2, "description": "Assael Hernandez Munguia — HBOT hold, peer review pending. Updated LMN submitted Jun 9. Awaiting insurance decision.", "priority": "medium", "owner": "TMS / HMS", "status": "open", "opened": "2026-06-05" }
       ],
       "vendors": [
         { "name": "AT&T Business Fiber", "type": "ISP", "account": "ATT-CV-8821", "contact": "800-321-2000", "contract_notes": "500Mbps, contract through 2027-03" },
@@ -354,11 +355,14 @@ let DATA = {
       ],
       "vendors": [
         { "name": "TMS Billing Solutions", "type": "Billing", "account": "TMS-6002", "contact": "tms-support@tms.com", "contract_notes": "Integrated with Office Ally. Monthly fee." },
-        { "name": "Office Ally", "type": "EHR/Billing", "account": "OA-LAG-001", "contact": "support@officeally.com", "contract_notes": "Claims submission and ERA processing" }
+        { "name": "Office Ally", "type": "EHR/Billing", "account": "OA-LAG-001", "contact": "support@officeally.com", "contract_notes": "Claims submission and ERA processing" },
+        { "name": "Stacey V", "type": "Marketing", "account": "—", "contact": "svajrabukka@gmail.com", "contract_notes": "Weekly physician outreach, Laguna and Oceanside. Invoice submitted week of Jun 5 — payment pending." },
+        { "name": "Nikhil (health.ai)", "type": "Web Design", "account": "—", "contact": "Nikhil@health.ai", "contract_notes": "Building Pacific Hyperbarics websites for Laguna, Monterey, Madras." }
       ],
-      "notes": "Network: Basic Netgear router, DHCP default range. No dedicated equipment subnet.\n\nBilling contact: Stacey handles day-to-day Office Ally submissions. TMS handles insurance follow-up.",
+      "notes": "Rebrand: Skincredible → Pacific Hyperbarics. Website live: pacifichyperbaricslaguna.com (Jun 5).\n\nMarketing: Stacey V doing weekly physician outreach. Connected with 3 physicians in Laguna Hills/Mission Viejo week of May 26.\n\nNetwork: Basic Netgear router, DHCP default range. No dedicated equipment subnet.\n\nBilling: TMS Billings (Ben Stark) handles insurance follow-up and claims.",
       "action_items": [
-        { "task": "Finalize MOU with Skincredible / Bobby", "owner": "Michael Greenhalgh", "due": "2026-06-20", "status": "open" },
+        { "task": "Finalize MOU with Bobby / operating structure", "owner": "Michael Greenhalgh", "due": "2026-06-20", "status": "open" },
+        { "task": "Pay Stacey V marketing invoice — week of Jun 5", "owner": "Michael Greenhalgh", "due": "2026-06-20", "status": "open" },
         { "task": "Reconcile Account #6002 revenue allocation YTD", "owner": "HMS Finance", "due": "2026-06-30", "status": "open" }
       ],
       "capex": []
@@ -388,7 +392,8 @@ let DATA = {
       ],
       "issues": [
         { "id": 1, "description": "City inspection not yet scheduled — blocking chamber pressurization test", "priority": "high", "owner": "Westaway", "status": "open", "opened": "2026-06-01" },
-        { "id": 2, "description": "Chamber 2 vendor not selected — 3 bids outstanding", "priority": "medium", "owner": "HMS Ops", "status": "open", "opened": "2026-05-28" }
+        { "id": 2, "description": "Chamber 2 vendor not selected — 3 bids outstanding", "priority": "medium", "owner": "HMS Ops", "status": "open", "opened": "2026-05-28" },
+        { "id": 3, "description": "Electrical issue flagged by Chamney Electrical (Jun 11) — server/electrical problem noted at site. Scope not yet confirmed.", "priority": "medium", "owner": "HMS Ops", "status": "open", "opened": "2026-06-11" }
       ],
       "vendors": [
         { "name": "Sechrist Industries", "type": "Equipment", "account": "SECH-0441", "contact": "714-579-8400", "contract_notes": "Chamber 1 purchased. Chamber 2 bid pending." },
@@ -503,16 +508,18 @@ let DATA = {
       ],
       "issues": [
         { "id": 1, "description": "Flooring contractor proposal received — awaiting Tim / HMS approval to proceed", "priority": "medium", "owner": "Tim / HMS", "status": "open", "opened": "2026-06-05" },
-        { "id": 2, "description": "Electrical proposal from contractor not yet submitted", "priority": "medium", "owner": "Westaway", "status": "open", "opened": "2026-06-08" }
+        { "id": 2, "description": "Electrical: Chamney Electrical (Darrin) engaged Jun 8. Site visit not yet scheduled — call Sandy (702-218-9602) to arrange access. Invoice sent via text Jun 11, not yet confirmed received.", "priority": "medium", "owner": "HMS Ops", "status": "open", "opened": "2026-06-08" }
       ],
       "vendors": [
         { "name": "Sechrist Industries", "type": "Equipment", "account": "SECH-0441", "contact": "714-579-8400", "contract_notes": "Both chambers purchased and delivered." },
-        { "name": "Rivera Flooring", "type": "Contractor", "account": "—", "contact": "951-555-0188", "contract_notes": "Bid submitted, awaiting approval" }
+        { "name": "Rivera Flooring", "type": "Contractor", "account": "—", "contact": "951-555-0188", "contract_notes": "Bid submitted, awaiting approval" },
+        { "name": "Chamney Electrical", "type": "Electrical", "account": "—", "contact": "dchamney@chamneyelectrical.com", "contract_notes": "Darrin Chamney, CEO. Engaged Jun 8. Site visit pending — Sandy (702-218-9602) is site contact for access. Invoice outstanding (sent via text Jun 11)." }
       ],
       "notes": "Site: 3720 University Ave, Riverside CA 92501.\n\nNetwork: ISP not yet contracted. Will need business fiber.\n\nBoth chambers are in storage on-site. Installation sequence: flooring → electrical → chamber placement → air/O2 → inspection.",
       "action_items": [
         { "task": "Approve flooring proposal", "owner": "Tim / HMS", "due": "2026-06-17", "status": "open" },
-        { "task": "Get electrical proposal from contractor", "owner": "Westaway", "due": "2026-06-20", "status": "open" },
+        { "task": "Schedule Chamney Electrical site visit — call Sandy 702-218-9602 for access", "owner": "HMS Ops", "due": "2026-06-18", "status": "open" },
+        { "task": "Confirm receipt and pay Chamney Electrical invoice (sent via text Jun 11)", "owner": "HMS Ops", "due": "2026-06-18", "status": "open" },
         { "task": "Select Air/O2 vendor from bids", "owner": "HMS Ops", "due": "2026-06-25", "status": "open" },
         { "task": "Contract ISP for business fiber", "owner": "HMS Ops", "due": "2026-07-01", "status": "open" }
       ],
@@ -533,9 +540,9 @@ let DATA = {
       "category": "Operations",
       "operations": [
         "Equipment maintenance completed",
-        "Four active patients",
-        "Two insurance cases",
-        "TMS billing active"
+        "Six active patients",
+        "Insurance billing via TMS active",
+        "Twyla Rice extended to 30 more treatments (4x/week)"
       ],
       "team": ["Deb", "TMS Billing"],
       "risks": [
@@ -548,15 +555,18 @@ let DATA = {
         { "name": "O2 Concentrator", "model": "Invacare Perfecto2", "serial": "INV-O2-122", "warranty": "2027-02", "vendor": "Invacare", "status": "operational" }
       ],
       "issues": [
-        { "id": 1, "description": "Two insurance claims >45 days outstanding — follow-up needed", "priority": "medium", "owner": "Deb / TMS", "status": "open", "opened": "2026-05-25" }
+        { "id": 1, "description": "Two insurance claims >45 days outstanding — follow-up needed", "priority": "medium", "owner": "Deb / TMS", "status": "open", "opened": "2026-05-25" },
+        { "id": 2, "description": "3 veterans interested in cash-pay treatment — pricing decision needed from HMS before Deb can book them.", "priority": "medium", "owner": "HMS Ops", "status": "open", "opened": "2026-06-08" }
       ],
       "vendors": [
         { "name": "TMS Billing Solutions", "type": "Billing", "account": "TMS-MAD-004", "contact": "tms-support@tms.com", "contract_notes": "Handles all insurance billing and follow-up" },
         { "name": "CenturyLink / Lumen", "type": "ISP", "account": "CLK-MAD-7721", "contact": "877-453-8353", "contract_notes": "100Mbps DSL. Month-to-month." }
       ],
-      "notes": "Small clinic, Deb is solo operator. Chamber room is ~250 sq ft.\n\nNetwork: CenturyLink DSL. Basic router. Single network.\n\nPatient notes: 2 self-pay, 2 insurance (BCBS and Medicare). TMS handles all claims.",
+      "notes": "Small clinic, Deb (Deborah Dunton) is solo operator. Chamber room is ~250 sq ft.\n\nActive patients: Twyla Rice (extended 30 more treatments, 4x/week as of Jun 15), Bob Williams (kidney issue, resuming ASAP), Phyllis Langsev, Perry Choate, Lamar Yoder, Mike Dunton.\n\nNetwork: CenturyLink DSL. Basic router. Single network.\n\nBilling: TMS Billings handles all insurance claims.",
       "action_items": [
         { "task": "Follow up on 2 outstanding insurance claims >45 days", "owner": "Deb / TMS", "due": "2026-06-20", "status": "open" },
+        { "task": "Confirm supply order: Adult masks 6 Medium Large (requested Jun 1)", "owner": "HMS Ops", "due": "2026-06-20", "status": "open" },
+        { "task": "Set cash-pay pricing for veterans (3 interested, Deb waiting on answer)", "owner": "HMS Ops", "due": "2026-06-22", "status": "open" },
         { "task": "Recruit 2 additional patients for Q3", "owner": "Deb", "due": "2026-07-31", "status": "open" }
       ],
       "capex": []
