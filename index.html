@@ -897,15 +897,15 @@ BEHAVIOR RULES:
 - Lead with the problem, not the background.`;
 
 function openSettings() {
-  document.getElementById("personalityInput").value = localStorage.getItem("claudePersonality") || DEFAULT_PERSONALITY;
+  document.getElementById("personalityInput").value = DATA.personality || DEFAULT_PERSONALITY;
   document.getElementById("settingsModal").classList.add("active");
 }
 function closeSettings() { document.getElementById("settingsModal").classList.remove("active"); }
-function saveSettings() {
+async function saveSettings() {
   const personality = document.getElementById("personalityInput").value.trim();
-  if (personality) localStorage.setItem("claudePersonality", personality);
+  if (personality) DATA.personality = personality;
   closeSettings();
-  showNotification("Settings saved.", "success");
+  await saveToDb();
 }
 function resetPersonality() {
   document.getElementById("personalityInput").value = DEFAULT_PERSONALITY;
@@ -951,7 +951,7 @@ async function callClaude(userMessage) {
   const typingEl = document.getElementById("typingIndicator");
   typingEl.classList.add("visible");
 
-  const personality = localStorage.getItem("claudePersonality") || DEFAULT_PERSONALITY;
+  const personality = DATA.personality || DEFAULT_PERSONALITY;
   const systemPrompt = `${personality}
 
 --- DASHBOARD DATA ---
@@ -973,6 +973,7 @@ Available actions:
 - add_capex: {clinic, item: {description, amount, category, vendor, expected_date, status}}
 - update_capex_status: {clinic, description, status} — status: planned/approved/ordered/paid
 - add_global_action: {priority, action, owner, clinic, status}
+- update_personality: {personality} — replace the AI assistant instructions with improved version
 
 For read-only questions, no <cmd> block needed. Always include add_activity when you make a change.`;
 
@@ -1103,6 +1104,9 @@ function executeCommand(cmd) {
       break;
     case "add_global_action":
       DATA.actions.push({ priority: cmd.priority || "Medium", action: cmd.action, owner: cmd.owner || "HMS", clinic: cmd.clinic || "All", status: cmd.status || "Open" });
+      break;
+    case "update_personality":
+      if (cmd.personality) DATA.personality = cmd.personality;
       break;
   }
 }
