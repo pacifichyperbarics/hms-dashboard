@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HMS Staff Directory</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6fa; color: #1a202c; }
+
+    header {
+      background: #1a365d;
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 600; }
+    header a { color: #90cdf4; font-size: 0.85rem; text-decoration: none; margin-left: auto; }
+    header a:hover { text-decoration: underline; }
+
+    .container { max-width: 900px; margin: 32px auto; padding: 0 16px; }
+
+    .clinic-section {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .clinic-header {
+      background: #2b6cb0;
+      color: white;
+      padding: 14px 20px;
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .clinic-header span { font-size: 0.8rem; font-weight: normal; opacity: 0.75; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #ebf4ff;
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #4a5568;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid #f0f4f8;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f7fafc; }
+
+    .empty-row td { color: #a0aec0; font-style: italic; text-align: center; padding: 20px; }
+
+    .btn-delete {
+      background: none;
+      border: none;
+      color: #e53e3e;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      opacity: 0.6;
+    }
+    .btn-delete:hover { opacity: 1; background: #fff5f5; }
+
+    .add-form {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #f7fafc;
+      border-top: 1px solid #e2e8f0;
+      flex-wrap: wrap;
+    }
+    .add-form input {
+      flex: 1;
+      min-width: 120px;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      outline: none;
+    }
+    .add-form input:focus { border-color: #4299e1; box-shadow: 0 0 0 2px rgba(66,153,225,0.2); }
+    .btn-add {
+      background: #2b6cb0;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-add:hover { background: #2c5282; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #276749;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .toast.show { opacity: 1; }
+    .toast.error { background: #c53030; }
+
+    .saving { opacity: 0.5; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>HMS Staff Directory</h1>
+    <a href="/">← Back to Dashboard</a>
+  </header>
+
+  <div class="container" id="content">
+    <p style="text-align:center;padding:40px;color:#718096;">Loading…</p>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let DATA = null;
+
+    async function load() {
+      try {
+        const res = await fetch('/api/db');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        DATA = await res.json();
+        render();
+      } catch(e) {
+        document.getElementById('content').innerHTML =
+          `<p style="text-align:center;padding:40px;color:#e53e3e;">Failed to load data: ${e.message}</p>`;
+      }
+    }
+
+    async function save() {
+      try {
+        const res = await fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(DATA)
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        showToast('Saved.');
+      } catch(e) {
+        showToast('Save failed: ' + e.message, true);
+      }
+    }
+
+    function showToast(msg, isError) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (isError ? ' error' : '');
+      setTimeout(() => t.className = 'toast', 2500);
+    }
+
+    function render() {
+      const clinics = DATA.clinics || [];
+      const html = clinics.map((clinic, ci) => {
+        const staff = clinic.staff || [];
+        const rows = staff.length
+          ? staff.map((s, si) => `
+            <tr>
+              <td>${esc(s.name)}</td>
+              <td>${esc(s.role)}</td>
+              <td>${esc(s.date_hired)}</td>
+              <td><button class="btn-delete" onclick="removeStaff(${ci},${si})" title="Remove">✕</button></td>
+            </tr>`).join('')
+          : `<tr class="empty-row"><td colspan="4">No staff entered yet</td></tr>`;
+
+        return `
+          <div class="clinic-section">
+            <div class="clinic-header">
+              ${esc(clinic.name)}
+              <span>${staff.length} staff member${staff.length !== 1 ? 's' : ''}</span>
+            </div>
+            <table>
+              <thead><tr><th>Name</th><th>Role</th><th>Date Hired</th><th></th></tr></thead>
+              <tbody id="tbody-${ci}">${rows}</tbody>
+            </table>
+            <div class="add-form">
+              <input id="name-${ci}" type="text" placeholder="Full name" />
+              <input id="role-${ci}" type="text" placeholder="Role / title" />
+              <input id="date-${ci}" type="date" />
+              <button class="btn-add" onclick="addStaff(${ci})">Add</button>
+            </div>
+          </div>`;
+      }).join('');
+
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function esc(s) {
+      return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    async function addStaff(ci) {
+      const name = document.getElementById(`name-${ci}`).value.trim();
+      const role = document.getElementById(`role-${ci}`).value.trim();
+      const date = document.getElementById(`date-${ci}`).value;
+      if (!name || !role || !date) { showToast('Fill in name, role, and date.', true); return; }
+
+      if (!DATA.clinics[ci].staff) DATA.clinics[ci].staff = [];
+      DATA.clinics[ci].staff.push({ name, role, date_hired: date });
+
+      await save();
+      render();
+    }
+
+    async function removeStaff(ci, si) {
+      DATA.clinics[ci].staff.splice(si, 1);
+      await save();
+      render();
+    }
+
+    load();
+  </script>
+</body>
+</html>
