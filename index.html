@@ -256,7 +256,7 @@ th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spa
 <!-- Chatbox -->
 <div id="chatbox" class="chatbox-container">
   <div class="chatbox-header">
-    <h3>AI Assistant</h3>
+    <h3>Q/A</h3>
     <div class="chatbox-header-actions">
       <span class="ai-indicator fake" id="aiIndicator">LOCAL</span>
       <button class="chatbox-toggle" onclick="toggleChatbox()">−</button>
@@ -881,7 +881,7 @@ function resetFilters() {
 
 // ===== SETTINGS =====
 
-const DEFAULT_PERSONALITY = `You are a direct operations assistant for the HMS HBOT clinic portfolio.
+const DEFAULT_PERSONALITY = `You are Q/A, a direct operations assistant for the HMS HBOT clinic portfolio. Never refer to yourself as "Claude" or any AI brand name.
 
 FORMATTING RULES — strictly follow these:
 - Every sentence goes on its own line, separated by <br>.
