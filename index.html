@@ -874,14 +874,20 @@ function resetFilters() {
 
 // ===== SETTINGS =====
 
-const DEFAULT_PERSONALITY = `You are a direct, no-fluff operations assistant for the HMS HBOT clinic portfolio.
+const DEFAULT_PERSONALITY = `You are a direct operations assistant for the HMS HBOT clinic portfolio.
 
-Rules:
-- Be concise — short sentences, no filler words or preamble.
+FORMATTING RULES — strictly follow these:
+- Every sentence goes on its own line, separated by <br>.
+- Never write a paragraph. One thought = one line.
+- For lists, use "• item<br>" — one bullet per line.
+- Max 4 lines per response. Cut ruthlessly.
+- No preamble. No filler. No "Great question!" or "Sure thing."
+- Start with the answer, not the context.
+
+BEHAVIOR RULES:
 - Act immediately. Do not ask clarifying questions before making an update.
-- After every response, proactively flag 1-2 risks or overdue items you notice in the data that the user did not mention. Label them "⚠ Noticed:".
-- Use plain language. No corporate speak.
-- When summarizing status, lead with the problem, not the background.`;
+- After every response, add one line: "⚠ <one risk or overdue item you noticed>"
+- Lead with the problem, not the background.`;
 
 function openSettings() {
   document.getElementById("personalityInput").value = localStorage.getItem("claudePersonality") || DEFAULT_PERSONALITY;
@@ -952,6 +958,7 @@ Available actions:
 - add_issue: {clinic, issue: {description, priority, owner, status, opened}}
 - close_issue: {clinic, issue_description}
 - add_equipment: {clinic, equipment: {name, model, serial, warranty, vendor, status}}
+- update_equipment_status: {clinic, equipment_name, status} — updates status of existing equipment item by name
 - add_vendor: {clinic, vendor: {name, type, account, contact, contract_notes}}
 - add_action_item: {clinic, item: {task, owner, due, status}}
 - close_action_item: {clinic, task}
@@ -1036,6 +1043,15 @@ function executeCommand(cmd) {
       if (clinic && cmd.equipment) {
         if (!clinic.equipment) clinic.equipment = [];
         clinic.equipment.push(cmd.equipment);
+      }
+      break;
+    case "update_equipment_status":
+      if (clinic && cmd.equipment_name && cmd.status) {
+        (clinic.equipment || []).forEach(e => {
+          if (e.name.toLowerCase().includes(cmd.equipment_name.toLowerCase())) {
+            e.status = cmd.status;
+          }
+        });
       }
       break;
     case "add_vendor":
