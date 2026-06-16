@@ -1,11 +1,10 @@
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const FILE = `${SUPABASE_URL}/storage/v1/object/hms-data/dashboard.json`;
 
-const headers = {
-  'Content-Type': 'application/json',
+const authHeaders = {
   'apikey': SUPABASE_SERVICE_KEY,
   'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-  'Prefer': 'return=representation',
 };
 
 export default async (req) => {
@@ -13,21 +12,19 @@ export default async (req) => {
     return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
-  const url = `${SUPABASE_URL}/rest/v1/dashboard_data?id=eq.1`;
-
   if (req.method === 'GET') {
-    const res = await fetch(url, { headers });
-    const rows = await res.json();
-    if (!rows.length) return Response.json({ error: 'No data found' }, { status: 404 });
-    return Response.json(rows[0].data);
+    const res = await fetch(FILE, { headers: authHeaders });
+    if (!res.ok) return Response.json({ error: 'Failed to load data' }, { status: res.status });
+    const data = await res.json();
+    return Response.json(data);
   }
 
   if (req.method === 'POST') {
     const body = await req.json();
-    const res = await fetch(url, {
-      method: 'PATCH',
-      headers,
-      body: JSON.stringify({ data: body, updated_at: new Date().toISOString() }),
+    const res = await fetch(FILE, {
+      method: 'PUT',
+      headers: { ...authHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      body: JSON.stringify(body),
     });
     if (!res.ok) {
       const err = await res.text();
