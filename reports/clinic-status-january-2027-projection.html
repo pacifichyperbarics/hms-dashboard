@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="description" content="Base-case January 2027 projection for the HMS and Pacific Hyperbarics clinic portfolio.">
+  <title>HMS Clinic Portfolio - January 2027 Projection</title>
+  <style>
+    :root{
+      --ink:#142235;--muted:#65748a;--line:#dce5ee;--panel:#fff;--bg:#eff4f8;
+      --navy:#12395b;--teal:#117c78;--blue:#287eae;--green:#0f9d68;--lime:#8cab20;
+      --yellow:#dcaa14;--amber:#ec8b1d;--orange:#e46638;--red:#cf3e4c;
+      --shadow:0 14px 38px rgba(25,47,72,.09)
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:
+      radial-gradient(circle at 5% 0%,rgba(40,126,174,.15),transparent 30rem),
+      radial-gradient(circle at 96% 12%,rgba(15,157,104,.12),transparent 26rem),
+      var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55}
+    a{color:#176c9a}
+    .page{max-width:1180px;margin:0 auto;padding:30px 20px 70px}
+    .hero{padding:36px;border-radius:24px;color:white;background:linear-gradient(125deg,#103654,#176087 58%,#168173);box-shadow:var(--shadow)}
+    .eyebrow{margin:0 0 8px;text-transform:uppercase;letter-spacing:.14em;font-size:.78rem;opacity:.82}
+    h1{margin:0;font-size:clamp(2.15rem,4.6vw,3.9rem);line-height:1.03;letter-spacing:-.045em}
+    .hero p{max-width:930px;margin:17px 0 0;color:rgba(255,255,255,.89);font-size:1.06rem}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}.chips span{padding:7px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.23);background:rgba(255,255,255,.09);font-size:.8rem}
+    .section{margin-top:24px;padding:28px;border-radius:20px;background:var(--panel);box-shadow:var(--shadow)}
+    .section h2{margin:0 0 7px;font-size:1.55rem;letter-spacing:-.025em}.section h3{margin:25px 0 7px;font-size:1.13rem}.muted{color:var(--muted)}
+    .callout{margin-top:16px;padding:15px 17px;border:1px solid #c9dfeb;border-radius:14px;background:#eef7fb;color:#214e69}
+    .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}
+    .metric{padding:18px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#fff,#f8fafc)}
+    .metric .label{display:block;color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.07em}.metric .value{display:block;margin-top:5px;font-size:1.48rem;font-weight:850;letter-spacing:-.04em}.metric .sub{display:block;margin-top:4px;color:var(--muted);font-size:.78rem}
+    .compare{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}.chart{padding:20px;border:1px solid var(--line);border-radius:17px;background:#fbfcfe}.chart h3{margin:0 0 4px}.bars{display:grid;gap:11px;margin-top:16px}.row{display:grid;grid-template-columns:104px 1fr 62px;gap:10px;align-items:center}.name{font-size:.86rem;font-weight:760}.track{height:23px;border-radius:999px;background:#e6edf3;overflow:hidden}.fill{height:100%;border-radius:inherit}.pct{text-align:right;font-weight:820;font-size:.84rem}
+    .j-chula{width:95%;background:linear-gradient(90deg,#0d9664,#2bc487)}.j-salinas{width:85%;background:linear-gradient(90deg,#20a26c,#a8b521)}.j-oceanside{width:80%;background:linear-gradient(90deg,#d9bd1d,#eb941c)}.j-madras{width:70%;background:linear-gradient(90deg,#e7ae1d,#ec7c21)}.j-monterey{width:60%;background:linear-gradient(90deg,#eb9b21,#e96635)}.j-laguna{width:55%;background:linear-gradient(90deg,#e0ad18,#d94a47)}.j-riverside{width:30%;background:linear-gradient(90deg,#e76b4c,#c9364b)}
+    .p-chula{width:98%;background:linear-gradient(90deg,#05895b,#20bb79)}.p-salinas{width:95%;background:linear-gradient(90deg,#07915e,#28bf7f)}.p-oceanside{width:95%;background:linear-gradient(90deg,#078f62,#2bc383)}.p-madras{width:90%;background:linear-gradient(90deg,#139c68,#79b12f)}.p-monterey{width:85%;background:linear-gradient(90deg,#55ab44,#b8b91d)}.p-laguna{width:80%;background:linear-gradient(90deg,#86ad2b,#dbad15)}.p-riverside{width:70%;background:linear-gradient(90deg,#d9ae18,#eb8a1d)}
+    .legend{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:16px;color:var(--muted);font-size:.8rem}.legend span{display:flex;align-items:center;gap:7px}.dot{width:10px;height:10px;border-radius:50%}.g{background:var(--green)}.gy{background:linear-gradient(90deg,var(--green),var(--yellow))}.y{background:var(--yellow)}.yr{background:linear-gradient(90deg,var(--yellow),var(--red))}.r{background:var(--red)}
+    .table-wrap{overflow-x:auto;margin-top:17px}table{width:100%;border-collapse:collapse;min-width:790px}th,td{padding:12px 13px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}th{background:#f5f8fb;color:#35485d;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em}tbody tr:last-child td{border-bottom:0}.money{text-align:right;font-variant-numeric:tabular-nums}
+    .status{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:.75rem;font-weight:820;white-space:nowrap}.s-green{color:#087149;background:#dcf6e9}.s-gy{color:#5d6f00;background:#eef2cb}.s-yellow{color:#835d00;background:#fff0bd}
+    .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:18px}.card{padding:20px;border:1px solid var(--line);border-radius:17px;background:#fff}.card h3{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin:0 0 8px}.card ul{margin:10px 0 0;padding-left:19px}.card li{margin:6px 0}.target{margin-top:13px;padding:12px 14px;border-left:4px solid var(--teal);border-radius:8px;background:#eef8f6}.target strong{display:block;color:#14665f}
+    .roadmap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}.phase{padding:18px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#fff,#f8fafc)}.phase h3{margin:0 0 8px}.phase ul{margin:0;padding-left:18px}.phase li{margin:6px 0}
+    .risk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:17px}.risk{padding:17px;border:1px solid var(--line);border-radius:15px;background:#fbfcfe}.risk b{display:block;margin-bottom:5px}
+    .overall{padding:18px 20px;border:1px solid #cfe1d7;border-radius:15px;background:#edf8f1;color:#215a3d}
+    footer{margin-top:24px;text-align:center;color:var(--muted);font-size:.78rem}
+    @media(max-width:900px){.metrics{grid-template-columns:repeat(2,1fr)}.compare,.cards{grid-template-columns:1fr}.roadmap,.risk-grid{grid-template-columns:1fr}.row{grid-template-columns:92px 1fr 54px}}
+    @media(max-width:620px){.page{padding:13px 10px 42px}.hero,.section{padding:21px;border-radius:17px}.metrics{grid-template-columns:1fr}.chart{padding:16px}.row{grid-template-columns:82px 1fr 47px;gap:7px}.name{font-size:.78rem}}
+    @media print{body{background:white}.page{max-width:none;padding:0}.hero,.section,.card,.phase,.risk{box-shadow:none;break-inside:avoid}}
+  </style>
+</head>
+<body>
+<main class="page">
+  <header class="hero">
+    <p class="eyebrow">HMS / Pacific Hyperbarics</p>
+    <h1>January 2027: Six-Month Base-Case Projection</h1>
+    <p>A practical picture of the portfolio after six months of disciplined execution: Oceanside operating, Madras protected, Laguna and Monterey stabilized, and Riverside opening or entering controlled ramp-up with one Perry chamber.</p>
+    <div class="chips"><span>Projection date: January 2027</span><span>Prepared from July 2026 baseline</span><span>Seven clinics</span><span>Management scenario, not a guarantee</span></div>
+  </header>
+
+  <section class="section">
+    <h2>What the portfolio should look like</h2>
+    <p class="muted">The base case assumes the known six-month priorities are completed without a major payer, equipment, staffing or construction interruption.</p>
+    <div class="metrics">
+      <div class="metric"><span class="label">Average clinic progress</span><span class="value">88%</span><span class="sub">Up from approximately 68%</span></div>
+      <div class="metric"><span class="label">Green clinics</span><span class="value">4</span><span class="sub">Up from one</span></div>
+      <div class="metric"><span class="label">Green / Yellow clinics</span><span class="value">2</span><span class="sub">Laguna and Monterey</span></div>
+      <div class="metric"><span class="label">Red or Yellow / Red</span><span class="value">0</span><span class="sub">Riverside remains Yellow while ramping</span></div>
+    </div>
+    <div class="callout"><strong>Base-case result:</strong> six clinics are stable or near-stable operating businesses; Riverside is physically complete or newly open and ramping under a one-chamber model.</div>
+  </section>
+
+  <section class="section">
+    <h2>Current versus January 2027 progress</h2>
+    <div class="compare">
+      <div class="chart">
+        <h3>July 2026 baseline</h3><p class="muted">Current operating and launch readiness</p>
+        <div class="bars">
+          <div class="row"><div class="name">Chula Vista</div><div class="track"><div class="fill j-chula"></div></div><div class="pct">95%</div></div>
+          <div class="row"><div class="name">Salinas</div><div class="track"><div class="fill j-salinas"></div></div><div class="pct">85%</div></div>
+          <div class="row"><div class="name">Oceanside</div><div class="track"><div class="fill j-oceanside"></div></div><div class="pct">80%</div></div>
+          <div class="row"><div class="name">Madras</div><div class="track"><div class="fill j-madras"></div></div><div class="pct">70%</div></div>
+          <div class="row"><div class="name">Monterey</div><div class="track"><div class="fill j-monterey"></div></div><div class="pct">60%</div></div>
+          <div class="row"><div class="name">Laguna</div><div class="track"><div class="fill j-laguna"></div></div><div class="pct">55%</div></div>
+          <div class="row"><div class="name">Riverside</div><div class="track"><div class="fill j-riverside"></div></div><div class="pct">30%</div></div>
+        </div>
+      </div>
+      <div class="chart">
+        <h3>January 2027 projection</h3><p class="muted">Base-case target state after six months</p>
+        <div class="bars">
+          <div class="row"><div class="name">Chula Vista</div><div class="track"><div class="fill p-chula"></div></div><div class="pct">98%</div></div>
+          <div class="row"><div class="name">Salinas</div><div class="track"><div class="fill p-salinas"></div></div><div class="pct">95%</div></div>
+          <div class="row"><div class="name">Oceanside</div><div class="track"><div class="fill p-oceanside"></div></div><div class="pct">95%</div></div>
+          <div class="row"><div class="name">Madras</div><div class="track"><div class="fill p-madras"></div></div><div class="pct">90%</div></div>
+          <div class="row"><div class="name">Monterey</div><div class="track"><div class="fill p-monterey"></div></div><div class="pct">85%</div></div>
+          <div class="row"><div class="name">Laguna</div><div class="track"><div class="fill p-laguna"></div></div><div class="pct">80%</div></div>
+          <div class="row"><div class="name">Riverside</div><div class="track"><div class="fill p-riverside"></div></div><div class="pct">70%</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="legend"><span><i class="dot g"></i>Green</span><span><i class="dot gy"></i>Green / Yellow</span><span><i class="dot y"></i>Yellow</span><span><i class="dot yr"></i>Yellow / Red</span><span><i class="dot r"></i>Red</span></div>
+    <p class="muted">The progress scores are directional management estimates, not audited KPIs.</p>
+  </section>
+
+  <section class="section">
+    <h2>January 2027 portfolio snapshot</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Clinic</th><th>Projected status</th><th>Expected January position</th><th>Operating target</th></tr></thead>
+        <tbody>
+          <tr><td>Chula Vista</td><td><span class="status s-green">Green - 98%</span></td><td>Mature cash engine with compressor redundancy and controlled overtime</td><td>Maintain near-full utilization; capacity decision completed</td></tr>
+          <tr><td>Salinas</td><td><span class="status s-green">Green - 95%</span></td><td>Stable production, reconciled collections and standardized authorization workflow</td><td>Approximately 4-6 treatments daily</td></tr>
+          <tr><td>Oceanside</td><td><span class="status s-green">Green - 95%</span></td><td>Fully open with two chambers, complete workflow and an established referral pipeline</td><td>Approximately 6-10 treatments daily</td></tr>
+          <tr><td>Madras</td><td><span class="status s-green">Green - 90%</span></td><td>Compressor exposure resolved, dependable staffing and growing Central Oregon referrals</td><td>Approximately 3-4 treatments daily</td></tr>
+          <tr><td>Monterey</td><td><span class="status s-gy">Green / Yellow - 85%</span></td><td>Laguna phone system installed, Office Ally standardized and weekly reporting active</td><td>Approximately 2-4 treatments daily</td></tr>
+          <tr><td>Laguna</td><td><span class="status s-gy">Green / Yellow - 80%</span></td><td>Volume rebuilt, liaison productive and interim operating economics resolved</td><td>Approximately 4-6 treatments daily</td></tr>
+          <tr><td>Riverside</td><td><span class="status s-yellow">Yellow - 70%</span></td><td>One Perry chamber ready or newly operating, with a controlled initial ramp</td><td>Approximately 2-3 treatments daily during ramp-up</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Illustrative financial shape</h2>
+    <p class="muted">These ranges are clinic gross monthly collections targets, not guaranteed forecasts and not necessarily equal to HMS distributable profit. Co-venture economics, payer timing and collections lag remain separate.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Clinic</th><th class="money">Illustrative monthly collections range</th><th>Principal basis</th></tr></thead>
+        <tbody>
+          <tr><td>Chula Vista</td><td class="money">$180,000-$220,000</td><td>Existing mature volume and capacity management</td></tr>
+          <tr><td>Salinas</td><td class="money">$60,000-$75,000</td><td>Stable census, authorizations and equipment reliability</td></tr>
+          <tr><td>Oceanside</td><td class="money">$70,000-$100,000</td><td>Two-chamber ramp approaching the standard six-month clinic curve</td></tr>
+          <tr><td>Madras</td><td class="money">$35,000-$55,000</td><td>Three-to-four daily treatments and broader local referrals</td></tr>
+          <tr><td>Laguna</td><td class="money">$35,000-$55,000</td><td>Rebuilt volume through active physician liaison work</td></tr>
+          <tr><td>Monterey</td><td class="money">$25,000-$45,000</td><td>Improved response, billing workflow and local pipeline</td></tr>
+          <tr><td>Riverside</td><td class="money">$10,000-$30,000</td><td>One-chamber opening and early ramp-up</td></tr>
+          <tr><td><strong>Total clinic gross collections</strong></td><td class="money"><strong>$415,000-$580,000 per month</strong></td><td><strong>Illustrative portfolio range</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Clinic-by-clinic January picture</h2>
+    <div class="cards">
+      <article class="card"><h3>Chula Vista <span class="status s-green">Green</span></h3><ul><li>Compressor replacement and redundancy completed.</li><li>Overtime and six-day scheduling are controlled rather than reactive.</li><li>A decision is made on third-chamber expansion, relocation or acquisition.</li><li>TMS, Office Ally and cash reconciliation are routinely clean.</li></ul><div class="target"><strong>January condition</strong>Protect the cash engine while preparing the next capacity step.</div></article>
+      <article class="card"><h3>Salinas <span class="status s-green">Green</span></h3><ul><li>Two compressors installed or fully committed.</li><li>Pending authorizations are handled on a defined turnaround schedule.</li><li>TMS-to-bank differences are reconciled monthly.</li><li>Salinas serves as the portfolio training model for intake and authorization workflow.</li></ul><div class="target"><strong>January condition</strong>Stable margin, predictable authorizations and dependable equipment.</div></article>
+      <article class="card"><h3>Oceanside <span class="status s-green">Green</span></h3><ul><li>Two chambers are fully operational.</li><li>Inspection, signage, life-safety and equipment closeout are complete.</li><li>Front-office, billing, clinical forms, cleaning and laundry workflows are standardized.</li><li>Todd supports operational quality; O'Bryan's launch work transitions into maintenance and repeatable launch documentation.</li></ul><div class="target"><strong>January condition</strong>A functioning two-chamber clinic moving toward mature volume.</div></article>
+      <article class="card"><h3>Madras <span class="status s-green">Green</span></h3><ul><li>The compressor motor problem is resolved through repair or replacement.</li><li>Backup capacity and maintenance procedures are documented.</li><li>Credentialing and payroll access issues are closed.</li><li>Warm Springs and Central Oregon outreach produce a dependable referral stream.</li></ul><div class="target"><strong>January condition</strong>A stable, fully controlled regional clinic rather than a single-point operational risk.</div></article>
+      <article class="card"><h3>Monterey <span class="status s-gy">Green / Yellow</span></h3><ul><li>Rudy has moved and activated the newer Laguna phone system.</li><li>Phone, fax, intake and referral response are reliable.</li><li>Office Ally and billing responsibilities are clear.</li><li>A one-page weekly report tracks patients, treatments, authorizations, claims and collections.</li></ul><div class="target"><strong>January condition</strong>Operationally orderly, with the remaining work concentrated on referral growth.</div></article>
+      <article class="card"><h3>Laguna <span class="status s-gy">Green / Yellow</span></h3><ul><li>A productive medical liaison is in place.</li><li>Physician visits convert into qualified referrals and starts.</li><li>The patient base is rebuilt beyond the July two-patient level.</li><li>Interim governance and operating economics are documented.</li></ul><div class="target"><strong>January condition</strong>A growing clinic with clear economics, though still below full mature capacity.</div></article>
+      <article class="card"><h3>Riverside <span class="status s-yellow">Yellow</span></h3><ul><li>The initial model is based on one Perry chamber.</li><li>Flooring, electrical, HVAC, compressor and oxygen scopes are complete or controlled.</li><li>No sprinkler modifications are included in the current plan.</li><li>Todd owns operating readiness; O'Bryan owns physical execution and documentation.</li><li>Staffing, training, protocols and referral development are active.</li></ul><div class="target"><strong>January condition</strong>Newly open or immediately ready to open, with early patient ramp rather than mature production.</div></article>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Six-month execution path</h2>
+    <div class="roadmap">
+      <div class="phase"><h3>July-September 2026</h3><ul><li>Open Oceanside correctly.</li><li>Resolve the Madras compressor.</li><li>Move the Laguna phone system to Monterey.</li><li>Hire and activate Laguna liaison capacity.</li><li>Freeze Riverside one-chamber scope and budget.</li></ul></div>
+      <div class="phase"><h3>October-November 2026</h3><ul><li>Ramp Oceanside referrals and treatments.</li><li>Install Chula and Salinas compressor upgrades.</li><li>Enforce weekly clinic reporting.</li><li>Complete Riverside field work and equipment installation.</li><li>Standardize billing and authorizations across clinics.</li></ul></div>
+      <div class="phase"><h3>December 2026-January 2027</h3><ul><li>Move Oceanside toward mature volume.</li><li>Open or launch Riverside in controlled ramp.</li><li>Validate Laguna and Monterey growth.</li><li>Confirm portfolio cash reserve and next capex cycle.</li><li>Make Chula capacity-expansion decision.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>What could prevent this result</h2>
+    <div class="risk-grid">
+      <div class="risk"><b>Equipment delays</b><span class="muted">Compressor, oxygen-generation or chamber-system delays could hold back Madras, Oceanside or Riverside.</span></div>
+      <div class="risk"><b>Payer and authorization lag</b><span class="muted">Volume can exist without cash if authorizations, documentation and claims are not closed promptly.</span></div>
+      <div class="risk"><b>Incomplete weekly visibility</b><span class="muted">The projection assumes every clinic reports treatments, authorizations, collections and blockers consistently.</span></div>
+    </div>
+  </section>
+
+  <section class="section"><div class="overall"><strong>Projected January 2027 position:</strong> HMS has four green clinics, two green/yellow clinics and one yellow ramp-up clinic. The portfolio is no longer dependent only on Chula, Salinas and Madras for operating momentum; Oceanside is a real contributor, Laguna and Monterey are orderly growth clinics, and Riverside is entering production under a one-chamber model.</div></section>
+
+  <footer><a href="/reports/clinic-status-july-2026.html">View the July 2026 baseline report</a><br>Internal management projection. Unlisted and marked noindex; anyone with the URL can view it.</footer>
+</main>
+</body>
+</html>
