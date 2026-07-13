@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="description" content="HMS and Pacific Hyperbarics clinic status and progress report for July 2026.">
+  <title>HMS Clinic Status and Progress Report - July 2026</title>
+  <style>
+    :root {
+      --ink:#142235; --muted:#667488; --line:#dce4ed; --panel:#ffffff;
+      --canvas:#f1f5f9; --navy:#173b5f; --blue:#2779a7;
+      --green:#16a36d; --yellow:#d9a20b; --red:#d5434b;
+      --shadow:0 12px 34px rgba(27,49,77,.09);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;color:var(--ink);background:
+      radial-gradient(circle at 8% 0%,rgba(47,126,176,.13),transparent 31rem),
+      radial-gradient(circle at 95% 17%,rgba(231,169,24,.12),transparent 26rem),
+      var(--canvas);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55}
+    .page{max-width:1180px;margin:0 auto;padding:32px 20px 68px}
+    .hero{position:relative;overflow:hidden;padding:36px;border-radius:24px;color:#fff;background:linear-gradient(124deg,#113556,#1b5b84 58%,#2a8586);box-shadow:var(--shadow)}
+    .hero:after{content:"";position:absolute;width:340px;height:340px;right:-120px;top:-178px;border-radius:50%;border:60px solid rgba(255,255,255,.08)}
+    .eyebrow{margin:0 0 8px;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;opacity:.82}
+    h1{margin:0;max-width:880px;font-size:clamp(2.1rem,4.5vw,3.8rem);line-height:1.03;letter-spacing:-.045em}
+    .hero p{max-width:900px;margin:18px 0 0;color:rgba(255,255,255,.88);font-size:1.08rem}
+    .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+    .chips span{padding:7px 11px;border:1px solid rgba(255,255,255,.24);border-radius:999px;background:rgba(255,255,255,.09);font-size:.82rem}
+    .section{margin-top:25px;padding:28px;border-radius:20px;background:var(--panel);box-shadow:var(--shadow)}
+    .section h2{margin:0 0 8px;font-size:1.55rem;letter-spacing:-.025em}
+    .section h3{margin:27px 0 7px;font-size:1.16rem}
+    .section p{margin:8px 0 0}.muted{color:var(--muted)}
+    .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:20px}
+    .metric{padding:18px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#fff,#f8fafc)}
+    .metric .label{color:var(--muted);font-size:.76rem;text-transform:uppercase;letter-spacing:.07em}
+    .metric .value{display:block;margin-top:5px;font-size:1.48rem;font-weight:820;letter-spacing:-.035em}
+    .metric .note{display:block;margin-top:4px;color:var(--muted);font-size:.78rem}
+    .table-wrap{overflow-x:auto;margin-top:17px}
+    table{width:100%;border-collapse:collapse;min-width:720px}
+    th,td{padding:12px 13px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+    th{color:#34475d;background:#f5f8fb;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em}
+    tbody tr:last-child td{border-bottom:0}.money{text-align:right;font-variant-numeric:tabular-nums}
+    .bars{display:grid;gap:13px;margin-top:20px}
+    .bar-row{display:grid;grid-template-columns:128px 1fr 122px;gap:12px;align-items:center}
+    .clinic{font-weight:760}.track{height:30px;border-radius:999px;background:#e6edf3;overflow:hidden;box-shadow:inset 0 1px 3px rgba(20,40,65,.12)}
+    .fill{height:100%;border-radius:inherit;box-shadow:inset 0 -2px 0 rgba(0,0,0,.08)}
+    .chula{width:95%;background:linear-gradient(90deg,#079b65,#2ac783)}
+    .salinas{width:85%;background:linear-gradient(90deg,#20a76d,#b6bc1b)}
+    .oceanside{width:80%;background:linear-gradient(90deg,#e0bd13,#f09a1b)}
+    .madras{width:70%;background:linear-gradient(90deg,#eab21a,#ef7f21)}
+    .monterey{width:60%;background:linear-gradient(90deg,#ef9e20,#ee6932)}
+    .laguna{width:55%;background:linear-gradient(90deg,#e1b416,#df4c45)}
+    .riverside{width:30%;background:linear-gradient(90deg,#eb6c4e,#c93349)}
+    .bar-label{font-weight:820;white-space:nowrap}.bar-label small{display:block;color:var(--muted);font-size:.72rem;font-weight:680}
+    .legend{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:18px;color:var(--muted);font-size:.81rem}
+    .legend span{display:inline-flex;align-items:center;gap:7px}.dot{width:10px;height:10px;border-radius:50%}
+    .green-dot{background:var(--green)}.gy-dot{background:linear-gradient(90deg,var(--green),var(--yellow))}.yellow-dot{background:var(--yellow)}.yr-dot{background:linear-gradient(90deg,var(--yellow),var(--red))}.red-dot{background:var(--red)}
+    .distribution{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:21px}
+    .dist{padding:14px;border:1px solid var(--line);border-radius:15px;background:#fbfcfe;text-align:center}.dist b{display:block;font-size:1.5rem}.dist span{color:var(--muted);font-size:.77rem}
+    .status{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;font-size:.75rem;font-weight:820;white-space:nowrap}
+    .s-green{color:#08714a;background:#dcf6ea}.s-gy{color:#617100;background:#eef2cd}.s-yellow{color:#895f00;background:#fff0bf}.s-yr{color:#9a4625;background:#ffe0ca}.s-red{color:#a32e39;background:#fddfe2}
+    .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}
+    .card{padding:20px;border:1px solid var(--line);border-radius:17px;background:#fff}.card h3{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin:0 0 9px;font-size:1.2rem}.card p{color:#35475b}.card ul{margin:11px 0 0;padding-left:19px}.card li{margin:6px 0}
+    .action{margin-top:14px;padding:12px 14px;border-left:4px solid var(--blue);border-radius:8px;background:#edf6fc}.action strong{display:block;color:#165276}
+    .roles{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:17px}.role{padding:20px;border:1px solid var(--line);border-radius:17px;background:linear-gradient(180deg,#fff,#f8fafc)}.role h3{margin:0 0 4px}.role-tag{color:var(--muted);font-size:.83rem;font-weight:720}.role ul{padding-left:19px;margin-bottom:0}.role li{margin:6px 0}
+    .role-summary{margin-top:16px;padding:18px 20px;border-radius:15px;color:#fff;background:linear-gradient(105deg,#275c7c,#2b7f77);font-size:1.04rem;font-weight:760}
+    .priorities{counter-reset:item;display:grid;gap:11px;margin-top:18px}.priority{display:grid;grid-template-columns:34px 1fr;gap:12px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fbfcfe}.priority:before{counter-increment:item;content:counter(item);display:grid;place-items:center;width:32px;height:32px;border-radius:50%;color:#fff;background:var(--navy);font-weight:820}
+    .overall{padding:17px 19px;border:1px solid #eadca6;border-radius:14px;background:#f7f1df;color:#594912}
+    footer{margin-top:24px;color:var(--muted);font-size:.78rem;text-align:center}
+    @media(max-width:900px){.metrics{grid-template-columns:repeat(2,1fr)}.cards,.roles{grid-template-columns:1fr}.bar-row{grid-template-columns:108px 1fr 106px}.distribution{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:620px){.page{padding:14px 11px 42px}.hero,.section{padding:21px;border-radius:17px}.metrics{grid-template-columns:1fr}.bar-row{grid-template-columns:1fr;gap:5px}.track{height:25px}.bar-label{margin-bottom:5px}.distribution{grid-template-columns:1fr 1fr}}
+    @media print{body{background:#fff}.page{max-width:none;padding:0}.hero,.section{box-shadow:none;break-inside:avoid}.card,.role,.priority{break-inside:avoid}}
+  </style>
+</head>
+<body>
+<main class="page">
+  <header class="hero">
+    <p class="eyebrow">Hyperbaric Management Services MSO LLC</p>
+    <h1>Clinic Status and Progress Report</h1>
+    <p>Portfolio operating position, colorful clinic-progress histogram, financial context, current blockers, immediate priorities and the Riverside responsibility distinction.</p>
+    <div class="chips"><span>Status cutoff: July 13, 2026</span><span>Seven clinics</span><span>Internal management report</span></div>
+  </header>
+
+  <section class="section">
+    <h2>Executive position</h2>
+    <p class="muted">HMS has a strong three-clinic cash engine. The principal work is converting that financial strength into consistent execution, reporting and controlled clinic launches while preserving responsibility-driven local management.</p>
+    <div class="metrics">
+      <div class="metric"><span class="label">June receipts allocated</span><span class="value">$283,586.62</span><span class="note">Chula, Salinas and Madras</span></div>
+      <div class="metric"><span class="label">Operating NOI</span><span class="value">$214,109.53</span><span class="note">Before rents and Salinas share</span></div>
+      <div class="metric"><span class="label">Post-rent/share pool</span><span class="value">$200,170.44</span><span class="note">Cash-basis management view</span></div>
+      <div class="metric"><span class="label">Known equipment plan</span><span class="value">$50,000</span><span class="note">Excludes buildout closeout and exceptions</span></div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>June cash-basis metric</th><th class="money">Amount</th></tr></thead><tbody>
+      <tr><td>Chula Vista receipts allocated</td><td class="money">$219,093.56</td></tr>
+      <tr><td>Salinas receipts allocated</td><td class="money">$51,963.62</td></tr>
+      <tr><td>Madras receipts allocated</td><td class="money">$12,529.44</td></tr>
+      <tr><td><strong>Total receipts allocated</strong></td><td class="money"><strong>$283,586.62</strong></td></tr>
+      <tr><td>Operating expenses</td><td class="money">$69,477.09</td></tr>
+      <tr><td><strong>Operating NOI</strong></td><td class="money"><strong>$214,109.53</strong></td></tr>
+      <tr><td>Chula rent</td><td class="money">$3,500.00</td></tr>
+      <tr><td>Salinas rent</td><td class="money">$2,350.00</td></tr>
+      <tr><td>Salinas share</td><td class="money">$8,089.09</td></tr>
+      <tr><td><strong>Post-rent/share pool</strong></td><td class="money"><strong>$200,170.44</strong></td></tr>
+    </tbody></table></div>
+    <p class="muted">These figures are primarily bank-receipt allocations, not complete accrual P&amp;Ls for every clinic. The current cash direction is approximately $90,000 to Bonita, with the HMS-side balance remaining in account #6002 and $20,000 in #6002 designated for capex.</p>
+  </section>
+
+  <section class="section">
+    <h2>Color status and progress histogram</h2>
+    <p class="muted">Estimated progress toward a stable, fully functioning clinic.</p>
+    <div class="bars" role="img" aria-label="Chula Vista 95 percent green; Salinas 85 percent green-yellow; Oceanside 80 percent yellow; Madras 70 percent yellow; Monterey 60 percent yellow; Laguna 55 percent yellow-red; Riverside 30 percent red.">
+      <div class="bar-row"><div class="clinic">Chula Vista</div><div class="track"><div class="fill chula"></div></div><div class="bar-label">95%<small>Green</small></div></div>
+      <div class="bar-row"><div class="clinic">Salinas</div><div class="track"><div class="fill salinas"></div></div><div class="bar-label">85%<small>Green / Yellow</small></div></div>
+      <div class="bar-row"><div class="clinic">Oceanside</div><div class="track"><div class="fill oceanside"></div></div><div class="bar-label">80%<small>Yellow</small></div></div>
+      <div class="bar-row"><div class="clinic">Madras</div><div class="track"><div class="fill madras"></div></div><div class="bar-label">70%<small>Yellow</small></div></div>
+      <div class="bar-row"><div class="clinic">Monterey</div><div class="track"><div class="fill monterey"></div></div><div class="bar-label">60%<small>Yellow</small></div></div>
+      <div class="bar-row"><div class="clinic">Laguna</div><div class="track"><div class="fill laguna"></div></div><div class="bar-label">55%<small>Yellow / Red</small></div></div>
+      <div class="bar-row"><div class="clinic">Riverside</div><div class="track"><div class="fill riverside"></div></div><div class="bar-label">30%<small>Red</small></div></div>
+    </div>
+    <div class="legend"><span><i class="dot green-dot"></i>Green</span><span><i class="dot gy-dot"></i>Green / Yellow</span><span><i class="dot yellow-dot"></i>Yellow</span><span><i class="dot yr-dot"></i>Yellow / Red</span><span><i class="dot red-dot"></i>Red</span></div>
+    <div class="distribution"><div class="dist"><b>1</b><span>Green</span></div><div class="dist"><b>1</b><span>Green / Yellow</span></div><div class="dist"><b>3</b><span>Yellow</span></div><div class="dist"><b>1</b><span>Yellow / Red</span></div><div class="dist"><b>1</b><span>Red</span></div></div>
+    <p class="muted">Percentages are management estimates based on operating readiness, patient production, physical buildout, workflow and known blockers. They are not audited KPIs.</p>
+  </section>
+
+  <section class="section">
+    <h2>Portfolio snapshot</h2>
+    <div class="table-wrap"><table><thead><tr><th>Clinic</th><th>Status</th><th>Current position</th><th>Principal issue</th></tr></thead><tbody>
+      <tr><td>Chula Vista</td><td><span class="status s-green">Green</span></td><td>Primary cash engine; effectively full</td><td>Capacity, overtime and equipment redundancy</td></tr>
+      <tr><td>Salinas</td><td><span class="status s-gy">Green / Yellow</span></td><td>Profitable and clinically active</td><td>Authorizations, reconciliation and compressors</td></tr>
+      <tr><td>Oceanside</td><td><span class="status s-yellow">Yellow</span></td><td>Closest buildout to opening</td><td>Inspection, staffing, safety and workflow closeout</td></tr>
+      <tr><td>Madras</td><td><span class="status s-yellow">Yellow</span></td><td>Operating and 100%-controlled</td><td>Compressor motor and backup capacity</td></tr>
+      <tr><td>Monterey</td><td><span class="status s-yellow">Yellow</span></td><td>Operating; stronger reporting required</td><td>Phone transfer, billing workflow and pipeline visibility</td></tr>
+      <tr><td>Laguna</td><td><span class="status s-yr">Yellow / Red</span></td><td>Operating with two established patients</td><td>Volume, liaison hiring and governance</td></tr>
+      <tr><td>Riverside</td><td><span class="status s-red">Red</span></td><td>Early buildout with one Perry chamber</td><td>Scope, equipment, utilities, staffing and leadership</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section class="section">
+    <h2>Clinic-by-clinic report</h2>
+    <div class="cards">
+      <article class="card"><h3>Chula Vista <span class="status s-green">Green</span></h3><p><strong>Current state:</strong> Established, highly utilized, profitable and the dominant source of operating cash.</p><ul><li>June allocated receipts: <strong>$219,093.56</strong>, approximately 77% of the three-clinic receipt pool.</li><li>Two-chamber capacity is the principal operating constraint.</li><li>Billing through TMS remains active; new and pending cases continue entering the pipeline.</li><li>Office Ally security and access should be verified following a suspicious-activity notice.</li><li>Planned capital: approximately <strong>$20,000</strong> for two compressors and installation.</li></ul><div class="action"><strong>Immediate action</strong>Lock the compressor plan, verify Office Ally access, monitor overtime and make a formal capacity decision.</div></article>
+
+      <article class="card"><h3>Salinas <span class="status s-gy">Green / Yellow</span></h3><p><strong>Current state:</strong> Operational, profitable and active, with Monica holding meaningful responsibility for authorizations and coordination.</p><ul><li>June bank-receipt allocation: <strong>$51,963.62</strong>.</li><li>TMS June collections report: <strong>$57,870.36</strong>; the $5,906.74 difference requires reconciliation.</li><li>Latest operating picture: four patients treating, one expected start and three pending authorizations.</li><li>Planned capital: approximately <strong>$20,000</strong> for two compressors and installation.</li><li>Salinas should serve as the operating model for Office Ally, authorization and front-office training.</li></ul><div class="action"><strong>Immediate action</strong>Reconcile collections, close pending authorizations, purchase compressors and formalize the Salinas training workflow.</div></article>
+
+      <article class="card"><h3>Laguna <span class="status s-yr">Yellow / Red</span></h3><p><strong>Current state:</strong> Open and functioning, but current volume is below the earlier five-patient June position.</p><ul><li>Two established patients were reported in the latest weekly update.</li><li>B. Repasy was expected to return July 20 at four treatments weekly after surgery.</li><li>C. Sowders was scheduled for three treatments during the following week.</li><li>TMS's Laguna billing contract is signed, and Office Ally transition work is underway.</li><li>Medical-liaison recruiting is active and should be tied to qualified referrals, authorizations and starts.</li><li>Planned capital: approximately <strong>$10,000</strong> for two oxygen generators.</li></ul><div class="action"><strong>Immediate action</strong>Hire the liaison, restore dependable patient volume and put interim partner economics in writing.</div></article>
+
+      <article class="card"><h3>Monterey <span class="status s-yellow">Yellow</span></h3><p><strong>Current state:</strong> Operational, but production, staffing, authorizations and collections need consistent weekly visibility.</p><ul><li>Sydney was last identified as the local lead.</li><li>The newer Laguna phone system can be moved to Monterey by Rudy during his visit.</li><li>The Laguna configuration should be documented before relocation so Monterey receives a complete, functioning system.</li><li>Office Ally, billing, phone, fax and referral-response responsibilities require one accountable workflow.</li><li>No major current clinical-equipment capital requirement is identified.</li></ul><div class="action"><strong>Immediate action</strong>Use Rudy's visit to relocate and activate the phone system, review workflow and establish a one-page weekly production report.</div></article>
+
+      <article class="card"><h3>Madras <span class="status s-yellow">Yellow</span></h3><p><strong>Current state:</strong> Operating, 100%-controlled and producing revenue, with material equipment-redundancy exposure.</p><ul><li>June allocated receipts: <strong>$12,529.44</strong>.</li><li>Four active patients were identified in the June 30 report, with two additional possible patients.</li><li>A technician diagnosed a failed main drive motor on compressor #1.</li><li>The OEM motor carried an estimated 16-week lead time; warranty and alternatives were being investigated.</li><li>Credentialing resubmission, staff coverage and independent facility supplies remain operating items.</li></ul><div class="action"><strong>Immediate action</strong>Pursue warranty, interchangeable or rebuilt motor, temporary compressor and replacement alternatives in parallel.</div></article>
+
+      <article class="card"><h3>Oceanside <span class="status s-yellow">Yellow</span></h3><p><strong>Current state:</strong> Substantially built and the closest project to opening, but not yet fully launch-ready.</p><ul><li>Two chambers are now associated with Oceanside, including the Perry chamber moved from Riverside.</li><li>Major chamber, compressor, electrical and tenant-improvement work is substantially complete.</li><li>Remaining gates include final shakedown, inspections, signage, oxygen monitoring, network/security, staffing and facility services.</li><li>Office Ally intake, payment flow, forms, safety records, maintenance logs, laundry, cleaning and supply completion require closure.</li><li>O'Bryan is the field launch integrator; Todd provides operational and hyperbaric-system oversight where useful.</li></ul><div class="action"><strong>Immediate action</strong>Use a single launch-gate sheet covering life safety, equipment, staffing, clinical/billing workflow and facility services.</div></article>
+
+      <article class="card"><h3>Riverside <span class="status s-red">Red</span></h3><p><strong>Current state:</strong> Buildout and equipment-development project; not yet an operating clinic.</p><ul><li>Riverside has <strong>one Perry chamber</strong>. The second Perry chamber was moved to Oceanside.</li><li>The startup model and all capacity assumptions should therefore be based on one chamber.</li><li>Compressor and oxygen-generation selections remain to be finalized.</li><li>Flooring, electrical and HVAC estimates require one reconciled scope and budget.</li><li><strong>No sprinkler modifications are to be considered at this time.</strong></li><li>Staffing, operating workflow, training and launch documentation remain to be developed.</li></ul><div class="action"><strong>Immediate action</strong>Confirm the one-chamber model, consolidate the budget, finalize equipment and activate the Todd/O'Bryan responsibility split.</div></article>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Riverside responsibility distinction</h2>
+    <div class="roles">
+      <article class="role"><h3>Todd Slayden</h3><div class="role-tag">Regional Operations Lead - operational definition and readiness acceptance</div><ul><li>Define the one-chamber operating model, schedule and capacity.</li><li>Specify clinical equipment, support equipment and operating requirements.</li><li>Review chamber, compressor, oxygen and safety-system suitability.</li><li>Develop protocols, maintenance standards, staffing qualifications and training requirements.</li><li>Design patient intake, treatment and daily-clinic workflow.</li><li>Maintain the consolidated launch plan and lead weekly Riverside review.</li><li>Determine when the clinic is operationally ready for testing, training and opening.</li></ul></article>
+      <article class="role"><h3>Michael O'Bryan</h3><div class="role-tag">Field Operations / Clinic Launch Manager - physical execution and documentation</div><ul><li>Coordinate contractors, installers, vendors and field access.</li><li>Maintain the physical punch list and work sequence.</li><li>Coordinate flooring, electrical, HVAC, cabling, network and security work.</li><li>Confirm utility requirements, measurements and equipment locations.</li><li>Track delivery, installation, serial numbers, warranties, manuals and vendor contacts.</li><li>Escalate field conflicts, cost changes and schedule risks.</li><li>Prepare the site for equipment testing, training and operational acceptance.</li></ul></article>
+    </div>
+    <div class="role-summary">Todd defines what Riverside needs, how it should operate and whether it is ready. O'Bryan executes and documents the physical work required to meet those requirements.</div>
+    <p class="muted">Todd should coordinate contractor direction through O'Bryan. O'Bryan should not change clinical, equipment or operating requirements without Todd's review. Capital commitments and material contract changes remain subject to Michael Greenhalgh's approval.</p>
+  </section>
+
+  <section class="section">
+    <h2>Responsibility-driven clinic management</h2>
+    <p>The clinic model is intentionally decentralized. Monica, Rudy, Deb and the other clinic leaders are motivated by meaningful responsibility and direct ownership of outcomes. The objective is not to dilute that responsibility with unnecessary layers.</p>
+    <p>HMS should preserve individual accountability while providing clear authority, measurable outcomes, central billing and administrative support, emergency backup coverage, cross-training and freedom to solve local operating issues within an approved framework.</p>
+  </section>
+
+  <section class="section">
+    <h2>Cross-clinic issues</h2>
+    <h3>1. Reporting</h3><p>The financial close is becoming dependable for Chula Vista, Salinas and Madras. The remaining need is a compact weekly operating report for every clinic, particularly Laguna and Monterey, and a controlled launch report for Oceanside and Riverside.</p>
+    <h3>2. Capital planning</h3>
+    <div class="table-wrap"><table><thead><tr><th>Clinic</th><th class="money">Current planned amount</th></tr></thead><tbody><tr><td>Chula compressors</td><td class="money">$20,000</td></tr><tr><td>Salinas compressors</td><td class="money">$20,000</td></tr><tr><td>Laguna oxygen generators</td><td class="money">$10,000</td></tr><tr><td>Monterey</td><td class="money">$0, excluding phone relocation costs</td></tr><tr><td>Madras</td><td class="money">$0 planned, excluding compressor exception</td></tr><tr><td><strong>Known planned total</strong></td><td class="money"><strong>$50,000</strong></td></tr></tbody></table></div>
+    <p class="muted">The known total excludes remaining Oceanside closeout and Riverside one-chamber buildout requirements. The $20,000 reserve in account #6002 is a starting reserve rather than full coverage.</p>
+    <h3>3. Billing and authorizations</h3><p>Salinas should function as the working standard for Office Ally, authorizations, supporting documentation, billing submissions and payment reconciliation. Rudy's Monterey visit should implement the same structure there.</p>
+    <h3>4. Administrative compliance</h3><p>Any apparent California entity-filing deficiency should be verified directly with the California Secretary of State before payment is made to a commercial filing service.</p>
+  </section>
+
+  <section class="section">
+    <h2>Immediate management priorities</h2>
+    <div class="priorities">
+      <div class="priority"><div><strong>Complete Oceanside correctly.</strong><br><span class="muted">Close inspection, safety, staffing, equipment and workflow gates.</span></div></div>
+      <div class="priority"><div><strong>Protect Madras.</strong><br><span class="muted">Resolve the compressor motor problem without accepting a prolonged single-point failure.</span></div></div>
+      <div class="priority"><div><strong>Rebuild Laguna volume.</strong><br><span class="muted">Hire the liaison, measure qualified referrals and finalize interim economics.</span></div></div>
+      <div class="priority"><div><strong>Stabilize Monterey systems.</strong><br><span class="muted">Have Rudy relocate the Laguna phone system and standardize workflow and weekly reporting.</span></div></div>
+      <div class="priority"><div><strong>Protect Chula and Salinas.</strong><br><span class="muted">Complete compressor planning, authorization control and reconciliation.</span></div></div>
+      <div class="priority"><div><strong>Control Riverside.</strong><br><span class="muted">Build around one Perry chamber, one scope, one budget and the Todd/O'Bryan division of responsibility.</span></div></div>
+      <div class="priority"><div><strong>Populate the weekly dashboard.</strong><br><span class="muted">Use actual treatments, authorizations, collections, cash needs and blockers.</span></div></div>
+    </div>
+  </section>
+
+  <section class="section"><div class="overall"><strong>Overall assessment:</strong> HMS is financially strong at its core. The principal opportunity is disciplined operational control across the smaller clinics and buildouts while preserving the responsibility and initiative of local clinic leaders.</div></section>
+  <footer>HMS / Pacific Hyperbarics internal management report. Unlisted and marked noindex; anyone with the URL can view it.</footer>
+</main>
+</body>
+</html>
