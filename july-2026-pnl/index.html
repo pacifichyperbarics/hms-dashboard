@@ -3,55 +3,88 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>HMS July 2026 Real-Time P&L</title>
+<title>HMS July 2026 P&amp;L</title>
+<meta name="description" content="HMS July 2026 profit and loss statement and revenue account #6002 allocation.">
 <style>
-:root{--blue:#337ab7;--dark:#173f67;--green:#e2f0d9;--gold:#fff2cc;--grid:#d9e1e8;--bg:#f3f6f9}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:#161616}.page{max-width:1040px;margin:0 auto;background:#fff;min-height:100vh;padding:18px}.title{background:#d9eaf7;color:#173f67;font-size:24px;font-weight:700;padding:14px 10px;border-bottom:1px solid #c5d5e2}.subtitle{background:#eef4f8;padding:16px 10px;font-style:italic;color:#34495e;line-height:1.4}.table{width:100%;border-collapse:collapse;margin-top:0}.table th{background:var(--blue);color:#fff;padding:12px 8px;font-size:17px;border:1px solid #c7d2dc}.table td{padding:7px 7px;border:1px solid var(--grid);vertical-align:top;font-size:16px;line-height:1.25}.table td.amount{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.bold{font-weight:700}.green td{background:var(--green);font-weight:700}.gold td{background:var(--gold);font-weight:700}.section{margin-top:18px}.spacer td{height:18px;background:#fff;border-left:0;border-right:0}.no-border td{border:0}.total td{font-weight:700;border-top:2px solid #7d8b96}.audit{margin-top:20px;background:#fff2cc;border-top:14px solid #ffc000;padding:16px;line-height:1.5}.audit h2{margin:0 0 10px;font-size:18px}.footer{margin:22px 0 4px;color:#5d6872;font-size:13px;text-align:center}
-@media(max-width:700px){.page{padding:0 0 18px}.title{font-size:20px}.subtitle{font-size:13px}.table th{font-size:13px;padding:9px 5px}.table td{font-size:13px;padding:7px 5px}.table th:nth-child(1){width:45%}.table th:nth-child(2){width:25%}.table th:nth-child(3){width:30%}.audit{margin:14px 8px}.footer{padding:0 8px}}
-@media print{body{background:#fff}.page{max-width:none;padding:0}.footer{display:none}}
+:root{--navy:#173f67;--blue:#337ab7;--pale:#d9eaf7;--soft:#eef4f8;--green:#e2f0d9;--gold:#fff2cc;--grid:#d6dee6;--bg:#f3f6f9;--text:#17212b;--muted:#5c6976}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--text);background:var(--bg)}
+.page{max-width:1060px;margin:0 auto;min-height:100vh;background:#fff;padding:18px 18px 30px;box-shadow:0 0 28px rgba(23,63,103,.08)}
+.topbar{display:flex;gap:14px;align-items:center;justify-content:flex-start;background:var(--pale);border-bottom:1px solid #c4d5e3;padding:14px 12px}
+.title{color:var(--navy);font-size:25px;font-weight:700;line-height:1.15}
+.subtitle{background:var(--soft);padding:13px 12px;color:#3b4b5a;font-size:14px;line-height:1.45}
+.table{width:100%;border-collapse:collapse;margin:0}
+.table th{background:var(--blue);color:#fff;text-align:left;padding:11px 9px;font-size:16px;border:1px solid #c6d1db}
+.table th:nth-child(2){text-align:right}
+.table td{padding:8px 9px;border:1px solid var(--grid);font-size:15px;line-height:1.3;vertical-align:top}
+.table td.amount{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.section{margin-top:18px}
+.green td{background:var(--green);font-weight:700}
+.gold td{background:var(--gold);font-weight:700}
+.total td{font-weight:700;border-top:2px solid #788999}
+.subtotal td{font-weight:700}
+.spacer td{height:12px;background:#fff;border-left:0;border-right:0}
+.note{margin-top:18px;border-left:6px solid #ffc000;background:#fff8dd;padding:14px 16px;font-size:14px;line-height:1.5}
+.note strong{color:var(--navy)}
+.footer{margin-top:20px;color:var(--muted);text-align:center;font-size:12px}
+@media(max-width:700px){
+ .page{padding:0 0 22px;box-shadow:none}
+ .topbar{align-items:flex-start;padding:13px 10px}
+ .title{font-size:20px}
+ .subtitle{font-size:13px;padding:11px 10px}
+ .table th{font-size:13px;padding:9px 5px}
+ .table td{font-size:13px;padding:7px 5px}
+ .table th:nth-child(1){width:43%} .table th:nth-child(2){width:23%} .table th:nth-child(3){width:34%}
+ .note{margin:14px 8px}
+ .footer{padding:0 8px}
+}
+@media print{body{background:#fff}.page{max-width:none;padding:0;box-shadow:none}}
 </style>
 </head>
 <body>
 <main class="page">
-<div class="title">HMS July 2026 Real-Time P&amp;L</div>
-<div class="subtitle">Revenue source: Office Ally July 1-31 remits; expenses: WF0811 operating expense rules; capex activity: WF5540.</div>
-<table class="table" aria-label="HMS July 2026 P and L">
-<thead><tr><th>Metric</th><th>Amount</th><th>Notes</th></tr></thead>
-<tbody>
-<tr><td>Gross receipts</td><td class="amount">$245,311.80</td><td>Office Ally July remit receipts</td></tr>
-<tr><td>Less: WF0811 operating expenses</td><td class="amount">$68,966.06</td><td>July WF0811 expenses after exclusions</td></tr>
-<tr class="green"><td>Operating NOI</td><td class="amount">$176,345.74</td><td>Gross receipts less WF0811 operating expenses</td></tr>
-<tr><td>Operating margin</td><td class="amount">71.9%</td><td>Operating NOI / gross receipts</td></tr>
-<tr><td>Less: Salinas share</td><td class="amount">$8,089.09</td><td>Provisional allocation rule</td></tr>
-<tr><td>Less: Salinas rent</td><td class="amount">$2,540.00</td><td>Fixed rent/distribution item</td></tr>
-<tr><td>Less: Chula rent</td><td class="amount">$3,500.00</td><td>Fixed rent/distribution item</td></tr>
-<tr class="green"><td>Post-deduction pool</td><td class="amount">$162,216.65</td><td>Operating NOI less Salinas share, Salinas rent, and Chula rent</td></tr>
-</tbody></table>
+  <div class="topbar">
+    <div class="title">HMS July 2026 Real-Time P&amp;L</div>
+  </div>
+  <div class="subtitle">July 1–31, 2026. Revenue is based on Office Ally received payments. Operating expenses are based on the full-month July Wells Fargo activity after exclusions and reclassification. Capital spending is shown below the operating line.</div>
 
-<table class="table section" aria-label="6002 revenue account treatment">
-<thead><tr><th>6002 Revenue Account Treatment</th><th>Amount</th><th>Notes</th></tr></thead>
-<tbody>
-<tr class="gold"><td>HMS NOI</td><td class="amount">$162,216.65</td><td></td></tr>
-<tr><td>Less Capex retained in 6002 for 5540</td><td class="amount bold">$20,000.00</td><td></td></tr>
-<tr><td class="bold">HMS After Capex Contribution</td><td class="amount bold">$142,216.65</td><td></td></tr>
-<tr class="spacer"><td colspan="3"></td></tr>
-<tr class="no-border"><td class="bold">HMS Partner distribution 50% Bonita</td><td class="amount bold">$71,108.33</td><td></td></tr>
-<tr class="no-border"><td class="bold">HMS Partner distribution 50% Greene</td><td class="amount bold">$71,108.32</td><td></td></tr>
-<tr class="spacer"><td colspan="3"></td></tr>
-<tr class="no-border"><td class="bold">Retained in 6002</td><td class="amount bold">$14,129.09</td><td>Above opex paid directly from 6002</td></tr>
-<tr class="no-border"><td></td><td class="amount bold">$20,000.00</td><td>Capex contribution retained in 6002</td></tr>
-<tr class="no-border"><td></td><td class="amount bold">$71,108.32</td><td>HMS Partner share Greene</td></tr>
-<tr class="no-border total"><td></td><td class="amount">$105,237.41</td><td>Retained in 6002 as a) HMS Share Greene b) Direct payments c) Capex contribution</td></tr>
-<tr class="spacer"><td colspan="3"></td></tr>
-<tr class="no-border"><td>Transferred to Bonita (two transfers)</td><td class="amount bold">$71,108.33</td><td>HMS Partner share Bonita</td></tr>
-<tr class="no-border"><td></td><td class="amount bold">$68,966.06</td><td>HMS Expenses</td></tr>
-<tr class="no-border total"><td></td><td class="amount">$140,074.39</td><td>Distributed to Bonita as a) Expenses and b) HMS Share</td></tr>
-<tr class="spacer"><td colspan="3"></td></tr>
-<tr class="no-border total"><td>Control Total</td><td class="amount">$245,311.80</td><td>Total of all expenses and distributions</td></tr>
-</tbody></table>
+  <table class="table" aria-label="HMS July 2026 profit and loss summary">
+    <thead><tr><th>Metric</th><th>Amount</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Gross receipts</td><td class="amount">$256,253.10</td><td>Office Ally Payment Amount total for July 1–31</td></tr>
+      <tr><td>Less: operating expenses</td><td class="amount">$65,836.21</td><td>Full-month July operating expenses after exclusions and reclassification</td></tr>
+      <tr class="green"><td>Operating NOI</td><td class="amount">$190,416.89</td><td>Gross receipts less operating expenses</td></tr>
+      <tr><td>Operating margin</td><td class="amount">74.3%</td><td>Operating NOI divided by gross receipts</td></tr>
+      <tr><td>Less: Salinas share</td><td class="amount">$4,325.28</td><td>30% × max(allocated Salinas receipts − $25,000, 0)</td></tr>
+      <tr><td>Less: Salinas rent</td><td class="amount">$2,540.00</td><td>Retained in revenue account #6002</td></tr>
+      <tr><td>Less: Chula rent</td><td class="amount">$3,500.00</td><td>Retained in revenue account #6002</td></tr>
+      <tr class="green"><td>Total HMS profit</td><td class="amount">$180,051.61</td><td>Operating NOI after Salinas share and rents</td></tr>
+      <tr><td>Capital expenses below operating line</td><td class="amount">$21,692.21</td><td>Riverside and Oceanside build/startup costs classified as CAPEX</td></tr>
+      <tr class="subtotal"><td>Real-time net after capital</td><td class="amount">$168,724.68</td><td>Operating NOI less capital expenses</td></tr>
+    </tbody>
+  </table>
 
-<section class="audit"><h2>AUDIT NOTE</h2><p>July real-time P&amp;L based on the supplied Office Ally remits and Wells Fargo 0811/5540 files. Clinic-level revenue allocation and the Salinas share remain provisional pending a confirmed clinic allocation schedule.</p></section>
-<div class="footer">HMS July 2026 Real-Time P&amp;L</div>
+  <table class="table section" aria-label="Revenue account 6002 allocation">
+    <thead><tr><th>Revenue Account #6002 Treatment</th><th>Amount</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr class="gold"><td>CAPEX reserve retained in #6002</td><td class="amount">$20,000.00</td><td>Not transferred to Bonita</td></tr>
+      <tr><td>Bonita Management 50% profit distribution</td><td class="amount">$80,025.80</td><td>50% of total HMS profit after the $20,000 reserve</td></tr>
+      <tr><td>Bonita operating expense reimbursement</td><td class="amount">$65,836.21</td><td>Reimbursement of July operating expenses</td></tr>
+      <tr class="total"><td>Total actual transfer to Bonita Management</td><td class="amount">$145,862.01</td><td>Expenses plus Bonita profit share</td></tr>
+      <tr class="spacer"><td colspan="3"></td></tr>
+      <tr><td>HMS 50% profit share retained in #6002</td><td class="amount">$80,025.80</td><td>Equal HMS profit share</td></tr>
+      <tr><td>Salinas share retained in #6002</td><td class="amount">$4,325.28</td><td>Clinic share remains in the revenue account</td></tr>
+      <tr><td>Salinas rent retained in #6002</td><td class="amount">$2,540.00</td><td>Rent remains in the revenue account</td></tr>
+      <tr><td>Chula rent retained in #6002</td><td class="amount">$3,500.00</td><td>Rent remains in the revenue account</td></tr>
+      <tr class="total"><td>Total retained in revenue account #6002</td><td class="amount">$110,391.09</td><td>Reserve, HMS share, Salinas share, Salinas rent, and Chula rent</td></tr>
+      <tr class="spacer"><td colspan="3"></td></tr>
+      <tr class="total"><td>Control total</td><td class="amount">$256,253.10</td><td>Bonita transfer plus total retained in #6002 equals gross receipts</td></tr>
+    </tbody>
+  </table>
+
+  <section class="note"><strong>Allocation note:</strong> The total retained in #6002 includes the $20,000 CAPEX reserve, HMS’s 50% profit share, the Salinas share, Salinas rent, and Chula rent. The Bonita transfer includes both operating-expense reimbursement and Bonita’s 50% profit distribution.</section>
+  <div class="footer">HMS July 2026 P&amp;L · Updated August 3, 2026</div>
 </main>
 </body>
 </html>
