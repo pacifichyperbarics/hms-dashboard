@@ -383,7 +383,10 @@ export default async (req: Request, context: Context) => {
 };
 
 export const config: Config = {
-  path: Object.keys(REPORTS),
+  path: [
+    "/reports/clinic-status-july-2026.html",
+    "/reports/clinic-status-january-2027-projection.html",
+  ],
   method: ["GET", "POST"],
-  onError: "continue",
+  onError: "bypass",
 };
