@@ -1,0 +1,21 @@
+{
+  "period": "2026-07",
+  "as_of": "2026-08-07",
+  "basis": "July management P&L; collections through Jul 31; WF0811 OPEX through Jul 29; WF5540 capex through Jul 22",
+  "allocation_rule": {"Chula Vista": 0.58, "Salinas": 0.30, "Laguna": 0.12, "payroll_reallocation_chula_to_laguna": 10000},
+  "totals": {"management_revenue": 268752.58, "allocated_operating_expense": 63327.09, "operating_noi": 205425.49, "startup_opex": 3937.04, "review_unallocated": 674.19, "capex": 18437.42, "tms_collections": 259943.52, "oa_practice_mate_total": 256253.10, "oa_matched_dollars": 234255.31, "oa_unmatched_era": 11385.89, "oa_unmatched_accounting": 21997.79},
+  "clinic_pnl": [
+    {"clinic":"Chula Vista","revenue":168193.61,"direct_opex":4113.43,"allocated_payroll":14100.06,"allocated_corporate":6536.23,"allocated_medical_gas":2100.45,"operating_expense":26850.17,"operating_noi":141343.44,"margin":0.8404,"startup_opex":0,"capex":0},
+    {"clinic":"Salinas","revenue":57545.32,"direct_opex":281.00,"allocated_payroll":12465.55,"allocated_corporate":3380.81,"allocated_medical_gas":1086.44,"operating_expense":17213.80,"operating_noi":40331.52,"margin":0.7009,"startup_opex":0,"capex":0},
+    {"clinic":"Laguna","revenue":8809.06,"direct_opex":490.00,"allocated_payroll":14986.22,"allocated_corporate":1352.32,"allocated_medical_gas":434.58,"operating_expense":17263.12,"operating_noi":-8454.06,"margin":-0.9597,"startup_opex":0,"capex":0},
+    {"clinic":"Madras","revenue":34204.59,"direct_opex":2000.00,"allocated_payroll":0,"allocated_corporate":0,"allocated_medical_gas":0,"operating_expense":2000.00,"operating_noi":32204.59,"margin":0.9415,"startup_opex":0,"capex":0},
+    {"clinic":"Monterey","revenue":0,"direct_opex":0,"allocated_payroll":0,"allocated_corporate":0,"allocated_medical_gas":0,"operating_expense":0,"operating_noi":0,"margin":null,"startup_opex":0,"capex":0},
+    {"clinic":"Oceanside","revenue":0,"direct_opex":0,"allocated_payroll":0,"allocated_corporate":0,"allocated_medical_gas":0,"operating_expense":0,"operating_noi":0,"margin":null,"startup_opex":3937.04,"capex":12437.42},
+    {"clinic":"Riverside","revenue":0,"direct_opex":0,"allocated_payroll":0,"allocated_corporate":0,"allocated_medical_gas":0,"operating_expense":0,"operating_noi":0,"margin":null,"startup_opex":0,"capex":6000.00}
+  ],
+  "open_items": [
+    {"item":"Location review expenses","amount":674.19,"status":"Review","note":"Receipt/location support required; excluded from clinic P&L until resolved."},
+    {"item":"Madras shared-cost allocation","amount":null,"status":"Rule needed","note":"Historical 58/30/12 rule covers Chula/Salinas/Laguna only. Madras remains direct-cost-only."},
+    {"item":"July operating expense cutoff","amount":null,"status":"Partial","note":"WF0811 source ends Jul 29, not Jul 31."}
+  ]
+}
