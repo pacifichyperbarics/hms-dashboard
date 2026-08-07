@@ -1,149 +1,29 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HMS Operating & Financial Dashboard</title>
 <style>
-:root{--bg:#f5f7fb;--panel:#fff;--ink:#172033;--muted:#667085;--line:#dfe5ef;--navy:#10213f;--blue:#2854a3;--green:#16794a;--yellow:#9a6700;--red:#b42318;--soft:#f8faff;--shadow:0 10px 28px rgba(23,32,51,.07)}
-*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}a{color:inherit}
-header{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;padding:28px 34px 24px}header .inner{max-width:1240px;margin:0 auto;display:flex;justify-content:space-between;gap:20px;align-items:flex-start}h1{font-size:28px;margin:0 0 7px;letter-spacing:-.3px}.subtitle{margin:0;opacity:.9;font-size:14px}.header-actions{display:flex;gap:8px;flex-wrap:wrap}.btn{display:inline-block;text-decoration:none;border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.13);color:#fff;padding:9px 12px;border-radius:9px;font-size:13px;font-weight:700}.btn:hover{background:rgba(255,255,255,.22)}
-.wrap{max-width:1240px;margin:0 auto;padding:24px}.notice{background:#fff;border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:14px;padding:14px 16px;margin-bottom:18px;box-shadow:var(--shadow)}.notice strong{display:block;margin-bottom:4px}.notice p{margin:0;color:var(--muted);font-size:13px}
-.kpis{display:grid;grid-template-columns:repeat(6,minmax(150px,1fr));gap:12px;margin-bottom:20px}.kpi{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:15px;box-shadow:var(--shadow);min-height:104px}.kpi .value{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}.kpi .label{font-size:12px;color:var(--muted);font-weight:700}.kpi .note{font-size:11px;color:var(--muted);margin-top:5px}.green{color:var(--green)}.yellow{color:var(--yellow)}.red{color:var(--red)}.blue{color:var(--blue)}
-.grid2{display:grid;grid-template-columns:1.25fr .75fr;gap:16px;margin-bottom:20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;box-shadow:var(--shadow);overflow:hidden}.panel h2{font-size:18px;margin:0 0 4px}.panel .sub{font-size:12px;color:var(--muted);margin-bottom:12px}.panel h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:16px 0 8px}
-.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:700px}th,td{padding:9px 10px;border-bottom:1px solid #edf0f5;text-align:right;white-space:nowrap}th{background:#fafbfe;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}th:first-child,td:first-child{text-align:left}tbody tr:last-child td,tfoot tr:last-child td{border-bottom:0}tfoot td{font-weight:800;background:#fbfcff}.money{font-variant-numeric:tabular-nums}.muted{color:var(--muted)}
-.metric-list{display:grid;gap:9px}.metric-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:#fbfcff}.metric-row .name{font-size:13px}.metric-row .amount{font-weight:800;font-variant-numeric:tabular-nums}.metric-row small{display:block;color:var(--muted);margin-top:2px}.rule{height:1px;background:var(--line);margin:13px 0}
-.clinic-table table{min-width:980px}.status{display:inline-block;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:800}.status.good{background:#e8f5ee;color:var(--green)}.status.build{background:#fff4d6;color:var(--yellow)}.status.none{background:#eef2f8;color:var(--muted)}.left{text-align:left!important}.nowrap{white-space:nowrap}.cell-note{display:block;color:var(--muted);font-size:10px;margin-top:2px;white-space:normal;line-height:1.25;max-width:185px}
-.split{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.split .box{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fbfcff}.split .box .num{font-weight:800;font-size:18px}.split .box .lbl{font-size:11px;color:var(--muted);margin-top:3px}.capex-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.capex-site{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fbfcff}.capex-site .top{display:flex;justify-content:space-between;gap:12px;margin-bottom:7px}.capex-site .top strong:last-child{font-variant-numeric:tabular-nums}.capex-site ul{margin:6px 0 0;padding-left:17px;color:var(--muted);font-size:12px}.capex-site li{margin:4px 0}
-.exceptions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.exception{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fbfcff}.exception .num{font-size:19px;font-weight:800}.exception .lbl{font-size:11px;color:var(--muted);margin-top:2px}.foot{margin-top:20px;color:var(--muted);font-size:11px;line-height:1.55}.foot strong{color:var(--ink)}
-@media(max-width:1050px){.kpis{grid-template-columns:repeat(3,1fr)}.grid2{grid-template-columns:1fr}.split{grid-template-columns:repeat(2,1fr)}.exceptions{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:650px){header{padding:22px 18px}header .inner{display:block}.header-actions{margin-top:14px}.wrap{padding:16px}.kpis{grid-template-columns:repeat(2,1fr)}.kpi .value{font-size:22px}.split,.exceptions,.capex-grid{grid-template-columns:1fr}}
-</style>
-</head>
-<body>
-<header>
-  <div class="inner">
-    <div>
-      <h1>HMS Operating &amp; Financial Dashboard</h1>
-      <p class="subtitle">Verified actuals through June 30, 2026 + July collections and spend snapshot | Updated August 7, 2026</p>
-    </div>
-    <div class="header-actions"><a class="btn" href="/ops">Open Operations View</a></div>
-  </div>
-</header>
+:root{--bg:#f5f7fb;--panel:#fff;--ink:#172033;--muted:#667085;--line:#dfe5ef;--navy:#10213f;--blue:#2854a3;--green:#16794a;--yellow:#9a6700;--red:#b42318;--shadow:0 10px 28px rgba(23,32,51,.07)}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}header{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;padding:28px 34px}.inner,.wrap{max-width:1240px;margin:auto}.inner{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}h1{margin:0 0 6px;font-size:28px}.subtitle{margin:0;opacity:.9;font-size:14px}.btn{display:inline-block;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.35);padding:9px 12px;border-radius:9px;font-size:13px;font-weight:700}.wrap{padding:24px}.notice,.panel,.kpi{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}.notice{border-left:5px solid var(--blue);border-radius:14px;padding:14px 16px;margin-bottom:18px}.notice p{margin:3px 0 0;color:var(--muted);font-size:13px}.kpis{display:grid;grid-template-columns:repeat(6,minmax(145px,1fr));gap:12px;margin-bottom:20px}.kpi{border-radius:15px;padding:15px;min-height:104px}.value{font-size:25px;font-weight:800}.label{font-size:12px;color:var(--muted);font-weight:700}.note{font-size:11px;color:var(--muted);margin-top:5px}.green{color:var(--green)}.blue{color:var(--blue)}.yellow{color:var(--yellow)}.red{color:var(--red)}.panel{border-radius:15px;padding:16px;margin-bottom:20px;overflow:hidden}.panel h2{font-size:18px;margin:0 0 4px}.sub{font-size:12px;color:var(--muted);margin-bottom:12px}.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:900px}th,td{padding:9px 10px;border-bottom:1px solid #edf0f5;text-align:right;white-space:nowrap}th{background:#fafbfe;color:var(--muted);font-size:11px;text-transform:uppercase}th:first-child,td:first-child{text-align:left}tfoot td{font-weight:800;background:#fbfcff}.status{display:inline-block;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:800}.status.good{background:#e8f5ee;color:var(--green)}.status.warn{background:#fff4d6;color:var(--yellow)}.status.bad{background:#fdecec;color:var(--red)}.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.metric{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid #edf0f5}.metric:last-child{border-bottom:0}.metric span:first-child{color:var(--muted);font-size:13px}.metric strong{font-variant-numeric:tabular-nums}.foot{color:var(--muted);font-size:11px;line-height:1.55}.loading{padding:22px;text-align:center;color:var(--muted)}@media(max-width:1050px){.kpis{grid-template-columns:repeat(3,1fr)}.grid2{grid-template-columns:1fr}}@media(max-width:650px){header{padding:22px 18px}.inner{display:block}.btn{margin-top:12px}.wrap{padding:16px}.kpis{grid-template-columns:repeat(2,1fr)}}
+</style></head><body>
+<header><div class="inner"><div><h1>HMS Operating &amp; Financial Dashboard</h1><p class="subtitle">Closed actuals through June 2026 + July management close | Data-driven monthly close feed</p></div><a class="btn" href="/ops">Open Operations View</a></div></header>
 <main class="wrap">
-  <section class="notice">
-    <strong>Reporting basis</strong>
-    <p>Jan–Jun is the closed/actual financial series. July is not presented as a closed P&amp;L: TMS collections cover Jul 1–31, Office Ally reconciliation covers Jul 1–31, WF0811 operating spend covers Jul 1–29, and WF5540 build/capex spend covers Jul 2–22.</p>
-  </section>
-
-  <section class="kpis">
-    <div class="kpi"><div class="value blue">$1.170M</div><div class="label">Gross Receipts</div><div class="note">Jan–Jun actual</div></div>
-    <div class="kpi"><div class="value green">$782.0K</div><div class="label">Operating NOI</div><div class="note">Jan–Jun actual</div></div>
-    <div class="kpi"><div class="value green">66.8%</div><div class="label">Operating Margin</div><div class="note">Jan–Jun blended</div></div>
-    <div class="kpi"><div class="value blue">$259.9K</div><div class="label">July TMS Collections</div><div class="note">93 unique checks, Jul 1–31</div></div>
-    <div class="kpi"><div class="value yellow">$67.9K</div><div class="label">July Operating Spend</div><div class="note">WF0811, Jul 1–29</div></div>
-    <div class="kpi"><div class="value yellow">$18.4K</div><div class="label">July Build / Capex</div><div class="note">WF5540, Jul 2–22</div></div>
-  </section>
-
-  <section class="grid2">
-    <div class="panel">
-      <h2>Financial Progress</h2>
-      <div class="sub">Closed/actual monthly series, January through June 2026.</div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Month</th><th>Gross Receipts</th><th>Operating Expense</th><th>Operating NOI</th><th>Margin</th><th>Capex</th><th>Cash After Capex</th></tr></thead>
-          <tbody>
-            <tr><td>Jan 2026</td><td>$83,082.65</td><td>$55,498.20</td><td>$27,584.45</td><td>33.2%</td><td>$450.00</td><td>$27,134.45</td></tr>
-            <tr><td>Feb 2026</td><td>$141,473.33</td><td>$70,060.59</td><td>$71,412.74</td><td>50.5%</td><td>$9,651.00</td><td>$61,761.74</td></tr>
-            <tr><td>Mar 2026</td><td>$183,852.14</td><td>$62,179.95</td><td>$121,672.19</td><td>66.2%</td><td>$20,130.48</td><td>$101,541.71</td></tr>
-            <tr><td>Apr 2026</td><td>$217,502.03</td><td>$69,510.79</td><td>$147,991.24</td><td>68.0%</td><td>$50.00</td><td>$147,941.24</td></tr>
-            <tr><td>May 2026</td><td>$260,698.22</td><td>$62,307.00</td><td>$198,391.22</td><td>76.1%</td><td>$11,900.00</td><td>$186,491.22</td></tr>
-            <tr><td>Jun 2026</td><td>$283,586.62</td><td>$68,620.21</td><td>$214,966.41</td><td>75.8%</td><td>$28,796.89</td><td>$186,169.52</td></tr>
-          </tbody>
-          <tfoot><tr><td>Jan–Jun Total</td><td>$1,170,194.99</td><td>$388,176.74</td><td>$782,018.25</td><td>66.8%</td><td>$70,978.37</td><td>$711,039.88</td></tr></tfoot>
-        </table>
-      </div>
-    </div>
-    <div class="panel">
-      <h2>July Cash Controls</h2>
-      <div class="sub">Collections and Office Ally reconciliation are separate source views and should not be added together as one revenue number.</div>
-      <div class="metric-list">
-        <div class="metric-row"><div class="name">TMS collections<small>Chula Vista + Salinas + Madras</small></div><div class="amount">$259,943.52</div></div>
-        <div class="metric-row"><div class="name">Office Ally / Practice Mate payments<small>Chula Vista + Laguna + Madras + Salinas</small></div><div class="amount">$256,253.10</div></div>
-        <div class="metric-row"><div class="name">Matched accounting dollars<small>79 matched payments</small></div><div class="amount green">$234,255.31</div></div>
-        <div class="metric-row"><div class="name">Laguna Office Ally payments<small>23 accounting items, all matched</small></div><div class="amount">$8,809.06</div></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="panel clinic-table" style="margin-bottom:20px">
-    <h2>July Clinic Actuals</h2>
-    <div class="sub">Cash collections and directly tagged bank spend. Direct OPEX excludes shared payroll, corporate/HMS expense, all-clinic medical gas, and review items.</div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Clinic</th><th class="left">Source Status</th><th>TMS Collections</th><th>OA / PM Payments</th><th>Direct Tagged OPEX</th><th>Build / Capex</th><th>OA Open Items</th></tr></thead>
-        <tbody>
-          <tr><td>Chula Vista</td><td class="left"><span class="status good">VERIFIED</span><span class="cell-note">Collections + OA + bank spend</span></td><td>$168,193.61</td><td>$210,048.46</td><td>$4,113.43</td><td class="muted">—</td><td class="red">6</td></tr>
-          <tr><td>Salinas</td><td class="left"><span class="status good">VERIFIED</span><span class="cell-note">Collections + OA + bank spend</span></td><td>$57,545.32</td><td>$17,015.38</td><td>$281.00</td><td class="muted">—</td><td class="red">3</td></tr>
-          <tr><td>Madras</td><td class="left"><span class="status good">VERIFIED</span><span class="cell-note">Collections + OA + bank spend</span></td><td>$34,204.59</td><td>$20,380.20</td><td>$2,000.00</td><td class="muted">—</td><td class="red">4</td></tr>
-          <tr><td>Laguna</td><td class="left"><span class="status good">VERIFIED</span><span class="cell-note">OA + bank spend; not in TMS collection file</span></td><td class="muted">—</td><td>$8,809.06</td><td>$490.00</td><td class="muted">—</td><td class="green">0</td></tr>
-          <tr><td>Oceanside</td><td class="left"><span class="status build">BUILDOUT</span><span class="cell-note">Bank OPEX + 5540 capex verified</span></td><td class="muted">—</td><td class="muted">—</td><td>$3,937.04</td><td>$12,437.42</td><td class="muted">—</td></tr>
-          <tr><td>Riverside</td><td class="left"><span class="status build">BUILDOUT</span><span class="cell-note">5540 capex verified</span></td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td>$6,000.00</td><td class="muted">—</td></tr>
-          <tr><td>Monterey</td><td class="left"><span class="status none">NO JULY FINANCE FEED</span><span class="cell-note">No verified July finance number in current source set</span></td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="panel" style="margin-bottom:20px">
-    <h2>July Operating Spend Allocation</h2>
-    <div class="sub">WF0811 actual spend of $67,938.32 through July 29 reconciles exactly to the buckets below.</div>
-    <div class="split">
-      <div class="box"><div class="num">$41,551.82</div><div class="lbl">Shared payroll &amp; benefits</div></div>
-      <div class="box"><div class="num">$11,269.37</div><div class="lbl">Corporate / HMS</div></div>
-      <div class="box"><div class="num">$10,821.47</div><div class="lbl">Direct tagged clinic spend</div></div>
-      <div class="box"><div class="num">$3,621.47</div><div class="lbl">All-clinic medical gas</div></div>
-      <div class="box"><div class="num">$674.19</div><div class="lbl">Location review queue</div></div>
-    </div>
-    <div class="rule"></div>
-    <div class="metric-list">
-      <div class="metric-row"><div class="name">Payroll &amp; Benefits</div><div class="amount">$41,551.82</div></div>
-      <div class="metric-row"><div class="name">Billing Services</div><div class="amount">$7,551.97</div></div>
-      <div class="metric-row"><div class="name">Medical Gas</div><div class="amount">$3,621.47</div></div>
-      <div class="metric-row"><div class="name">Rent &amp; Occupancy</div><div class="amount">$3,270.49</div></div>
-      <div class="metric-row"><div class="name">Operations Reimbursement</div><div class="amount">$2,500.00</div></div>
-    </div>
-  </section>
-
-  <section class="grid2">
-    <div class="panel">
-      <h2>July Build / Capex</h2>
-      <div class="sub">WF5540 verified vendor/build outflows through July 22. Funding/transfers are excluded from capex spend.</div>
-      <div class="capex-grid">
-        <div class="capex-site"><div class="top"><strong>Oceanside</strong><strong>$12,437.42</strong></div><ul><li>IT / network setup: $4,000.00</li><li>Air compressor installation: $4,559.00</li><li>Exterior signage: $3,196.17</li><li>Buildout / miscellaneous: $657.25</li><li>Related wire fee: $25.00</li></ul></div>
-        <div class="capex-site"><div class="top"><strong>Riverside</strong><strong>$6,000.00</strong></div><ul><li>Flooring deposit: $6,000.00</li><li>Source memo identifies this as a $6K deposit on a $9K flooring amount.</li></ul></div>
-      </div>
-    </div>
-    <div class="panel">
-      <h2>Office Ally Reconciliation Exceptions</h2>
-      <div class="sub">July 1–31. Exception dollars are shown by side and are not netted together.</div>
-      <div class="exceptions">
-        <div class="exception"><div class="num green">79</div><div class="lbl">Matched payments</div></div>
-        <div class="exception"><div class="num red">7</div><div class="lbl">Unmatched ERA items</div></div>
-        <div class="exception"><div class="num red">$11,385.89</div><div class="lbl">Unmatched ERA dollars</div></div>
-        <div class="exception"><div class="num red">$21,997.79</div><div class="lbl">Unmatched accounting dollars</div></div>
-      </div>
-      <div class="rule"></div>
-      <div class="metric-row"><div class="name">ERA total<small>86 remittances</small></div><div class="amount">$245,311.80</div></div>
-      <div style="height:8px"></div>
-      <div class="metric-row"><div class="name">Practice Mate total<small>85 accounting payments</small></div><div class="amount">$256,253.10</div></div>
-    </div>
-  </section>
-
-  <div class="foot">
-    <strong>Sources:</strong> HMS Jan–Jun 2026 Financial Progress Actual Weekly; HMS July 2026 TMS Collections Deduplicated; HMS July 2026 Office Ally Remit Reconciliation; HMS WF0811 Expense + WF5540 Capex report. Transfers, funding inflows, loan activity, and distributions are excluded from operating expense/capex where the source report classifies them as such.<br>
-    <strong>Important:</strong> TMS collections and Office Ally/Practice Mate payments are parallel operational cash/reconciliation views, not additive revenue. July direct clinic OPEX is not a clinic P&amp;L because shared payroll, corporate expense, and all-clinic medical gas have not been allocated by clinic.
-  </div>
+<section class="notice"><strong>July management-close basis</strong><p id="basis">Loading current close data...</p></section>
+<section class="kpis" id="kpis"><div class="loading">Loading close data...</div></section>
+<section class="grid2">
+<div class="panel"><h2>July Clinic Management P&amp;L</h2><div class="sub">Revenue, allocated operating expense, NOI and margin. Shared-cost rules are shown below and unresolved allocations remain flagged.</div><div class="table-wrap"><table><thead><tr><th>Clinic</th><th>Revenue</th><th>Direct OPEX</th><th>Allocated Payroll</th><th>Allocated Corp.</th><th>Allocated Gas</th><th>Total OPEX</th><th>Operating NOI</th><th>Margin</th><th>Startup OPEX</th><th>Capex</th></tr></thead><tbody id="clinicRows"></tbody><tfoot id="clinicTotal"></tfoot></table></div></div>
+<div class="panel"><h2>Close Controls</h2><div class="sub">Reconciliation and allocation controls.</div><div id="controls"></div></div>
+</section>
+<section class="panel"><h2>Jan-Jun Financial Progress</h2><div class="sub">Closed/actual series retained as historical control.</div><div class="table-wrap"><table><thead><tr><th>Month</th><th>Gross Receipts</th><th>Operating Expense</th><th>Operating NOI</th><th>Margin</th><th>Capex</th><th>Cash After Capex</th></tr></thead><tbody>
+<tr><td>Jan 2026</td><td>$83,082.65</td><td>$55,498.20</td><td>$27,584.45</td><td>33.2%</td><td>$450.00</td><td>$27,134.45</td></tr><tr><td>Feb 2026</td><td>$141,473.33</td><td>$70,060.59</td><td>$71,412.74</td><td>50.5%</td><td>$9,651.00</td><td>$61,761.74</td></tr><tr><td>Mar 2026</td><td>$183,852.14</td><td>$62,179.95</td><td>$121,672.19</td><td>66.2%</td><td>$20,130.48</td><td>$101,541.71</td></tr><tr><td>Apr 2026</td><td>$217,502.03</td><td>$69,510.79</td><td>$147,991.24</td><td>68.0%</td><td>$50.00</td><td>$147,941.24</td></tr><tr><td>May 2026</td><td>$260,698.22</td><td>$62,307.00</td><td>$198,391.22</td><td>76.1%</td><td>$11,900.00</td><td>$186,491.22</td></tr><tr><td>Jun 2026</td><td>$283,586.62</td><td>$68,620.21</td><td>$214,966.41</td><td>75.8%</td><td>$28,796.89</td><td>$186,169.52</td></tr>
+</tbody><tfoot><tr><td>Jan-Jun Total</td><td>$1,170,194.99</td><td>$388,176.74</td><td>$782,018.25</td><td>66.8%</td><td>$70,978.37</td><td>$711,039.88</td></tr></tfoot></table></div></section>
+<section class="panel"><h2>Open Close Items</h2><div class="sub">Items intentionally not guessed or forced closed.</div><div class="table-wrap"><table><thead><tr><th>Item</th><th>Amount</th><th>Status</th><th style="text-align:left">Note</th></tr></thead><tbody id="openRows"></tbody></table></div></section>
+<div class="foot"><strong>Source controls:</strong> July TMS collections, July Office Ally / Practice Mate reconciliation, WF0811 operating expense report, WF5540 build/capex report, and the prior approved clinic allocation rule. TMS and Office Ally are parallel source views and are not added together as revenue.</div>
 </main>
-</body>
-</html>
+<script>
+const money=n=>n==null?'-':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);const pct=n=>n==null?'-':(n*100).toFixed(1)+'%';
+async function load(){try{const r=await fetch('/data/close-2026-07.json',{cache:'no-store'});if(!r.ok)throw new Error('close data unavailable');const d=await r.json();document.getElementById('basis').textContent=d.basis+' | Updated '+d.as_of;
+const t=d.totals;document.getElementById('kpis').innerHTML=[[money(t.management_revenue),'July Mgmt Revenue','TMS Chula/Salinas/Madras + OA Laguna','blue'],[money(t.allocated_operating_expense),'Allocated OPEX','Clinic P&L allocation','yellow'],[money(t.operating_noi),'Operating NOI','Before startup OPEX/capex','green'],[money(t.startup_opex),'Startup OPEX','Oceanside','yellow'],[money(t.capex),'Build / Capex','Oceanside + Riverside','yellow'],[money(t.review_unallocated),'Unallocated Review','Excluded pending support','red']].map(x=>`<div class="kpi"><div class="value ${x[3]}">${x[0]}</div><div class="label">${x[1]}</div><div class="note">${x[2]}</div></div>`).join('');
+let rows='',tr=0,to=0,tn=0;for(const c of d.clinic_pnl){tr+=c.revenue;to+=c.operating_expense;tn+=c.operating_noi;let cls=c.operating_noi<0?'bad':(c.clinic==='Madras'?'warn':'good');rows+=`<tr><td><span class="status ${cls}">${c.clinic}</span></td><td>${money(c.revenue)}</td><td>${money(c.direct_opex)}</td><td>${money(c.allocated_payroll)}</td><td>${money(c.allocated_corporate)}</td><td>${money(c.allocated_medical_gas)}</td><td>${money(c.operating_expense)}</td><td class="${c.operating_noi<0?'red':'green'}">${money(c.operating_noi)}</td><td>${pct(c.margin)}</td><td>${money(c.startup_opex)}</td><td>${money(c.capex)}</td></tr>`}document.getElementById('clinicRows').innerHTML=rows;document.getElementById('clinicTotal').innerHTML=`<tr><td>Total</td><td>${money(tr)}</td><td colspan="4"></td><td>${money(to)}</td><td>${money(tn)}</td><td>${pct(tr?tn/tr:null)}</td><td>${money(t.startup_opex)}</td><td>${money(t.capex)}</td></tr>`;
+const a=d.allocation_rule;document.getElementById('controls').innerHTML=`<div class="metric"><span>Shared-cost allocation</span><strong>${(a['Chula Vista']*100).toFixed(0)}% / ${(a.Salinas*100).toFixed(0)}% / ${(a.Laguna*100).toFixed(0)}%</strong></div><div class="metric"><span>Payroll moved Chula to Laguna</span><strong>${money(a.payroll_reallocation_chula_to_laguna)}</strong></div><div class="metric"><span>TMS collections control</span><strong>${money(t.tms_collections)}</strong></div><div class="metric"><span>OA / Practice Mate control</span><strong>${money(t.oa_practice_mate_total)}</strong></div><div class="metric"><span>OA matched dollars</span><strong class="green">${money(t.oa_matched_dollars)}</strong></div><div class="metric"><span>Unmatched ERA</span><strong class="red">${money(t.oa_unmatched_era)}</strong></div><div class="metric"><span>Unmatched accounting</span><strong class="red">${money(t.oa_unmatched_accounting)}</strong></div>`;
+document.getElementById('openRows').innerHTML=d.open_items.map(x=>`<tr><td>${x.item}</td><td>${money(x.amount)}</td><td><span class="status warn">${x.status}</span></td><td style="text-align:left;white-space:normal">${x.note}</td></tr>`).join('');}catch(e){document.getElementById('basis').textContent='Unable to load current close data.';document.getElementById('kpis').innerHTML='<div class="notice red">Current close data failed to load.</div>';}}
+load();
+</script></body></html>
