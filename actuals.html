@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HMS Operating & Financial Dashboard</title>
+<style>
+:root{--bg:#f5f7fb;--panel:#fff;--ink:#172033;--muted:#667085;--line:#dfe5ef;--navy:#10213f;--blue:#2854a3;--green:#16794a;--yellow:#9a6700;--red:#b42318;--soft:#f8faff;--shadow:0 10px 28px rgba(23,32,51,.07)}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}a{color:inherit}
+header{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;padding:28px 34px 24px}header .inner{max-width:1240px;margin:0 auto;display:flex;justify-content:space-between;gap:20px;align-items:flex-start}h1{font-size:28px;margin:0 0 7px;letter-spacing:-.3px}.subtitle{margin:0;opacity:.9;font-size:14px}.header-actions{display:flex;gap:8px;flex-wrap:wrap}.btn{display:inline-block;text-decoration:none;border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.13);color:#fff;padding:9px 12px;border-radius:9px;font-size:13px;font-weight:700}.btn:hover{background:rgba(255,255,255,.22)}
+.wrap{max-width:1240px;margin:0 auto;padding:24px}.notice{background:#fff;border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:14px;padding:14px 16px;margin-bottom:18px;box-shadow:var(--shadow)}.notice strong{display:block;margin-bottom:4px}.notice p{margin:0;color:var(--muted);font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(150px,1fr));gap:12px;margin-bottom:20px}.kpi{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:15px;box-shadow:var(--shadow);min-height:104px}.kpi .value{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}.kpi .label{font-size:12px;color:var(--muted);font-weight:700}.kpi .note{font-size:11px;color:var(--muted);margin-top:5px}.green{color:var(--green)}.yellow{color:var(--yellow)}.red{color:var(--red)}.blue{color:var(--blue)}
+.grid2{display:grid;grid-template-columns:1.25fr .75fr;gap:16px;margin-bottom:20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;box-shadow:var(--shadow);overflow:hidden}.panel h2{font-size:18px;margin:0 0 4px}.panel .sub{font-size:12px;color:var(--muted);margin-bottom:12px}.panel h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:16px 0 8px}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:700px}th,td{padding:9px 10px;border-bottom:1px solid #edf0f5;text-align:right;white-space:nowrap}th{background:#fafbfe;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}th:first-child,td:first-child{text-align:left}tbody tr:last-child td,tfoot tr:last-child td{border-bottom:0}tfoot td{font-weight:800;background:#fbfcff}.money{font-variant-numeric:tabular-nums}.muted{color:var(--muted)}
+.metric-list{display:grid;gap:9px}.metric-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:#fbfcff}.metric-row .name{font-size:13px}.metric-row .amount{font-weight:800;font-variant-numeric:tabular-nums}.metric-row small{display:block;color:var(--muted);margin-top:2px}.rule{height:1px;background:var(--line);margin:13px 0}
+.clinic-table table{min-width:980px}.status{display:inline-block;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:800}.status.good{background:#e8f5ee;color:var(--green)}.status.build{background:#fff4d6;color:var(--yellow)}.status.none{background:#eef2f8;color:var(--muted)}.left{text-align:left!important}.nowrap{white-space:nowrap}.cell-note{display:block;color:var(--muted);font-size:10px;margin-top:2px;white-space:normal;line-height:1.25;max-width:185px}
+.split{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.split .box{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fbfcff}.split .box .num{font-weight:800;font-size:18px}.split .box .lbl{font-size:11px;color:var(--muted);margin-top:3px}.capex-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.capex-site{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fbfcff}.capex-site .top{display:flex;justify-content:space-between;gap:12px;margin-bottom:7px}.capex-site .top strong:last-child{font-variant-numeric:tabular-nums}.capex-site ul{margin:6px 0 0;padding-left:17px;color:var(--muted);font-size:12px}.capex-site li{margin:4px 0}
+.exceptions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.exception{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fbfcff}.exception .num{font-size:19px;font-weight:800}.exception .lbl{font-size:11px;color:var(--muted);margin-top:2px}.foot{margin-top:20px;color:var(--muted);font-size:11px;line-height:1.55}.foot strong{color:var(--ink)}
+@media(max-width:1050px){.kpis{grid-template-columns:repeat(3,1fr)}.grid2{grid-template-columns:1fr}.split{grid-template-columns:repeat(2,1fr)}.exceptions{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){header{padding:22px 18px}header .inner{display:block}.header-actions{margin-top:14px}.wrap{padding:16px}.kpis{grid-template-columns:repeat(2,1fr)}.kpi .value{font-size:22px}.split,.exceptions,.capex-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="inner">
+    <div>
+      <h1>HMS Operating &amp; Financial Dashboard</h1>
+      <p class="subtitle">Verified actuals through June 30, 2026 + July collections and spend snapshot | Updated August 7, 2026</p>
+    </div>
+    <div class="header-actions"><a class="btn" href="/ops">Open Operations View</a></div>
+  </div>
+</header>
+<main class="wrap">
+  <section class="notice">
+    <strong>Reporting basis</strong>
+    <p>Jan–Jun is the closed/actual financial series. July is not presented as a closed P&amp;L: TMS collections cover Jul 1–31, Office Ally reconciliation covers Jul 1–31, WF0811 operating spend covers Jul 1–29, and WF5540 build/capex spend covers Jul 2–22.</p>
+  </section>
+
+  <section class="kpis">
+    <div class="kpi"><div class="value blue">$1.170M</div><div class="label">Gross Receipts</div><div class="note">Jan–Jun actual</div></div>
+    <div class="kpi"><div class="value green">$782.0K</div><div class="label">Operating NOI</div><div class="note">Jan–Jun actual</div></div>
+    <div class="kpi"><div class="value green">66.8%</div><div class="label">Operating Margin</div><div class="note">Jan–Jun blended</div></div>
+    <div class="kpi"><div class="value blue">$259.9K</div><div class="label">July TMS Collections</div><div class="note">93 unique checks, Jul 1–31</div></div>
+    <div class="kpi"><div class="value yellow">$67.9K</div><div class="label">July Operating Spend</div><div class="note">WF0811, Jul 1–29</div></div>
+    <div class="kpi"><div class="value yellow">$18.4K</div><div class="label">July Build / Capex</div><div class="note">WF5540, Jul 2–22</div></div>
+  </section>
+
+  <section class="grid2">
+    <div class="panel">
+      <h2>Financial Progress</h2>
+      <div class="sub">Closed/actual monthly series, January through June 2026.</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Month</th><th>Gross Receipts</th><th>Operating Expense</th><th>Operating NOI</th><th>Margin</th><th>Capex</th><th>Cash After Capex</th></tr></thead>
+          <tbody>
+            <tr><td>Jan 2026</td><td>$83,082.65</td><td>$55,498.20</td><td>$27,584.45</td><td>33.2%</td><td>$450.00</td><td>$27,134.45</td></tr>
+            <tr><td>Feb 2026</td><td>$141,473.33</td><td>$70,060.59</td><td>$71,412.74</td><td>50.5%</td><td>$9,651.00</td><td>$61,761.74</td></tr>
+            <tr><td>Mar 2026</td><td>$183,852.14</td><td>$62,179.95</td><td>$121,672.19</td><td>66.2%</td><td>$20,130.48</td><td>$101,541.71</td></tr>
+            <tr><td>Apr 2026</td><td>$217,502.03</td><td>$69,510.79</td><td>$147,991.24</td><td>68.0%</td><td>$50.00</td><td>$147,941.24</td></tr>
+            <tr><td>May 2026</td><td>$260,698.22</td><td>$62,307.00</td><td>$198,391.22</td><td>76.1%</td><td>$11,900.00</td><td>$186,491.22</td></tr>
+            <tr><td>Jun 2026</td><td>$283,586.62</td><td>$68,620.21</td><td>$214,966.41</td><td>75.8%</td><td>$28,796.89</td><td>$186,169.52</td></tr>
+          </tbody>
+          <tfoot><tr><td>Jan–Jun Total</td><td>$1,170,194.99</td><td>$388,176.74</td><td>$782,018.25</td><td>66.8%</td><td>$70,978.37</td><td>$711,039.88</td></tr></tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>July Cash Controls</h2>
+      <div class="sub">Collections and Office Ally reconciliation are separate source views and should not be added together as one revenue number.</div>
+      <div class="metric-list">
+        <div class="metric-row"><div class="name">TMS collections<small>Chula Vista + Salinas + Madras</small></div><div class="amount">$259,943.52</div></div>
+        <div class="metric-row"><div class="name">Office Ally / Practice Mate payments<small>Chula Vista + Laguna + Madras + Salinas</small></div><div class="amount">$256,253.10</div></div>
+        <div class="metric-row"><div class="name">Matched accounting dollars<small>79 matched payments</small></div><div class="amount green">$234,255.31</div></div>
+        <div class="metric-row"><div class="name">Laguna Office Ally payments<small>23 accounting items, all matched</small></div><div class="amount">$8,809.06</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel clinic-table" style="margin-bottom:20px">
+    <h2>July Clinic Actuals</h2>
+    <div class="sub">Cash collections and directly tagged bank spend. Direct OPEX excludes shared payroll, corporate/HMS expense, all-clinic medical gas, and review items.</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Clinic</th><th class="left">Source Status</th><th>TMS Collections</th><th>OA / PM Payments</th><th>Direct Tagged OPEX</th><th>Build / Capex</th><th>OA Open Items</th></tr></thead>
+        <tbody>
+          <tr><td>Chula Vista</td><td class="left"><span class="status good">VERIFIED</span><span class="cell-note">Collections + OA + bank spend</span></td><td>$168,193.61</td><td>$210,048.46</td><td>$4,113.43</td><td class="muted">—</td><td class="red">6</td></tr>
+          <tr><td>Salinas</td><td class="left"><span class="status good">VERIFIED</span><span class="cell-note">Collections + OA + bank spend</span></td><td>$57,545.32</td><td>$17,015.38</td><td>$281.00</td><td class="muted">—</td><td class="red">3</td></tr>
+          <tr><td>Madras</td><td class="left"><span class="status good">VERIFIED</span><span class="cell-note">Collections + OA + bank spend</span></td><td>$34,204.59</td><td>$20,380.20</td><td>$2,000.00</td><td class="muted">—</td><td class="red">4</td></tr>
+          <tr><td>Laguna</td><td class="left"><span class="status good">VERIFIED</span><span class="cell-note">OA + bank spend; not in TMS collection file</span></td><td class="muted">—</td><td>$8,809.06</td><td>$490.00</td><td class="muted">—</td><td class="green">0</td></tr>
+          <tr><td>Oceanside</td><td class="left"><span class="status build">BUILDOUT</span><span class="cell-note">Bank OPEX + 5540 capex verified</span></td><td class="muted">—</td><td class="muted">—</td><td>$3,937.04</td><td>$12,437.42</td><td class="muted">—</td></tr>
+          <tr><td>Riverside</td><td class="left"><span class="status build">BUILDOUT</span><span class="cell-note">5540 capex verified</span></td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td>$6,000.00</td><td class="muted">—</td></tr>
+          <tr><td>Monterey</td><td class="left"><span class="status none">NO JULY FINANCE FEED</span><span class="cell-note">No verified July finance number in current source set</span></td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-bottom:20px">
+    <h2>July Operating Spend Allocation</h2>
+    <div class="sub">WF0811 actual spend of $67,938.32 through July 29 reconciles exactly to the buckets below.</div>
+    <div class="split">
+      <div class="box"><div class="num">$41,551.82</div><div class="lbl">Shared payroll &amp; benefits</div></div>
+      <div class="box"><div class="num">$11,269.37</div><div class="lbl">Corporate / HMS</div></div>
+      <div class="box"><div class="num">$10,821.47</div><div class="lbl">Direct tagged clinic spend</div></div>
+      <div class="box"><div class="num">$3,621.47</div><div class="lbl">All-clinic medical gas</div></div>
+      <div class="box"><div class="num">$674.19</div><div class="lbl">Location review queue</div></div>
+    </div>
+    <div class="rule"></div>
+    <div class="metric-list">
+      <div class="metric-row"><div class="name">Payroll &amp; Benefits</div><div class="amount">$41,551.82</div></div>
+      <div class="metric-row"><div class="name">Billing Services</div><div class="amount">$7,551.97</div></div>
+      <div class="metric-row"><div class="name">Medical Gas</div><div class="amount">$3,621.47</div></div>
+      <div class="metric-row"><div class="name">Rent &amp; Occupancy</div><div class="amount">$3,270.49</div></div>
+      <div class="metric-row"><div class="name">Operations Reimbursement</div><div class="amount">$2,500.00</div></div>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div class="panel">
+      <h2>July Build / Capex</h2>
+      <div class="sub">WF5540 verified vendor/build outflows through July 22. Funding/transfers are excluded from capex spend.</div>
+      <div class="capex-grid">
+        <div class="capex-site"><div class="top"><strong>Oceanside</strong><strong>$12,437.42</strong></div><ul><li>IT / network setup: $4,000.00</li><li>Air compressor installation: $4,559.00</li><li>Exterior signage: $3,196.17</li><li>Buildout / miscellaneous: $657.25</li><li>Related wire fee: $25.00</li></ul></div>
+        <div class="capex-site"><div class="top"><strong>Riverside</strong><strong>$6,000.00</strong></div><ul><li>Flooring deposit: $6,000.00</li><li>Source memo identifies this as a $6K deposit on a $9K flooring amount.</li></ul></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Office Ally Reconciliation Exceptions</h2>
+      <div class="sub">July 1–31. Exception dollars are shown by side and are not netted together.</div>
+      <div class="exceptions">
+        <div class="exception"><div class="num green">79</div><div class="lbl">Matched payments</div></div>
+        <div class="exception"><div class="num red">7</div><div class="lbl">Unmatched ERA items</div></div>
+        <div class="exception"><div class="num red">$11,385.89</div><div class="lbl">Unmatched ERA dollars</div></div>
+        <div class="exception"><div class="num red">$21,997.79</div><div class="lbl">Unmatched accounting dollars</div></div>
+      </div>
+      <div class="rule"></div>
+      <div class="metric-row"><div class="name">ERA total<small>86 remittances</small></div><div class="amount">$245,311.80</div></div>
+      <div style="height:8px"></div>
+      <div class="metric-row"><div class="name">Practice Mate total<small>85 accounting payments</small></div><div class="amount">$256,253.10</div></div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <strong>Sources:</strong> HMS Jan–Jun 2026 Financial Progress Actual Weekly; HMS July 2026 TMS Collections Deduplicated; HMS July 2026 Office Ally Remit Reconciliation; HMS WF0811 Expense + WF5540 Capex report. Transfers, funding inflows, loan activity, and distributions are excluded from operating expense/capex where the source report classifies them as such.<br>
+    <strong>Important:</strong> TMS collections and Office Ally/Practice Mate payments are parallel operational cash/reconciliation views, not additive revenue. July direct clinic OPEX is not a clinic P&amp;L because shared payroll, corporate expense, and all-clinic medical gas have not been allocated by clinic.
+  </div>
+</main>
+</body>
+</html>
