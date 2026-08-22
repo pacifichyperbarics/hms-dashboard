@@ -1,0 +1,29 @@
+name: AgentMail Verify Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/agentmail-verify-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify AgentMail account through Netlify
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body -sS 'https://hms-dashboard-v2.netlify.app/api/agentmail-verify-once' -o agentmail-verify-result.json
+      - name: Commit verification result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add agentmail-verify-result.json
+          git commit -m 'Store AgentMail verification result'
+          git push
