@@ -1,0 +1,5 @@
+export const API='https://sojtoyybfolcxezkppxc.supabase.co/functions/v1/referrals-v4-api';
+let key='';
+export function setKey(v){key=v||''}
+export function getKey(){return key}
+export async function call(action,extra={}){const body=new URLSearchParams({key,action});for(const [k,v] of Object.entries(extra))body.set(k,String(v));const r=await fetch(API,{method:'POST',body});const t=await r.text();let j={};try{j=JSON.parse(t)}catch{throw new Error('Bad server response')}if(!r.ok)throw new Error(j.error||('Request failed '+r.status));return j}
