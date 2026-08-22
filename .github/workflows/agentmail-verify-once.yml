@@ -27,3 +27,5 @@ jobs:
           git add agentmail-verify-result.json
           git commit -m 'Store AgentMail verification result'
           git push
+      - name: Complete
+        run: echo 'AgentMail verification workflow executed'
