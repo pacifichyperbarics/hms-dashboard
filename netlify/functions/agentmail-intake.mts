@@ -68,12 +68,12 @@ export default async (req: Request) => {
   const serviceKey = env("SUPABASE_SERVICE_KEY");
   if (!serviceKey) return Response.json({ error: "Database not configured" }, { status: 503 });
 
-  const secretRes = await fetch(`${SUPABASE_URL}/rest/v1/integration_runtime_secrets_v1?name=eq.agentmail_webhook_secret&select=secret_value`, {
+  const secretRes = await fetch(`${SUPABASE_URL}/rest/v1/integration_secrets_v1?name=eq.agentmail_webhook_secret&select=ciphertext_b64`, {
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
   });
   if (!secretRes.ok) return Response.json({ error: "Webhook verification unavailable" }, { status: 503 });
   const secretRows = await secretRes.json();
-  const webhookSecret = clean(secretRows?.[0]?.secret_value, 200);
+  const webhookSecret = clean(secretRows?.[0]?.ciphertext_b64, 200);
 
   const rawBody = await req.text();
   if (!webhookSecret || !(await verifySvix(req, rawBody, webhookSecret))) {
