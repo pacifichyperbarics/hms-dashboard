@@ -1,5 +1,7 @@
 import type { Config } from "@netlify/functions";
 
+const SUPABASE_URL = "https://sojtoyybfolcxezkppxc.supabase.co";
+
 function env(name: string): string {
   return globalThis.Netlify?.env?.get?.(name) || "";
 }
@@ -63,11 +65,10 @@ function htmlToText(html: string): string {
 export default async (req: Request) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
 
-  const supabaseUrl = env("SUPABASE_URL");
   const serviceKey = env("SUPABASE_SERVICE_KEY");
-  if (!supabaseUrl || !serviceKey) return Response.json({ error: "Database not configured" }, { status: 503 });
+  if (!serviceKey) return Response.json({ error: "Database not configured" }, { status: 503 });
 
-  const secretRes = await fetch(`${supabaseUrl}/rest/v1/integration_runtime_secrets_v1?name=eq.agentmail_webhook_secret&select=secret_value`, {
+  const secretRes = await fetch(`${SUPABASE_URL}/rest/v1/integration_runtime_secrets_v1?name=eq.agentmail_webhook_secret&select=secret_value`, {
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
   });
   if (!secretRes.ok) return Response.json({ error: "Webhook verification unavailable" }, { status: 503 });
@@ -105,7 +106,7 @@ export default async (req: Request) => {
   const sourceMessageId = clean(message.message_id || payload?.event_id, 300);
 
   if (sourceMessageId) {
-    const existing = await fetch(`${supabaseUrl}/rest/v1/referral_intake_v5?source_message_id=eq.${encodeURIComponent(sourceMessageId)}&select=id&limit=1`, {
+    const existing = await fetch(`${SUPABASE_URL}/rest/v1/referral_intake_v5?source_message_id=eq.${encodeURIComponent(sourceMessageId)}&select=id&limit=1`, {
       headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
     });
     if (existing.ok) {
@@ -142,7 +143,7 @@ export default async (req: Request) => {
     source_inbox_id: clean(message.inbox_id, 300),
   };
 
-  const result = await fetch(`${supabaseUrl}/rest/v1/referral_intake_v5`, {
+  const result = await fetch(`${SUPABASE_URL}/rest/v1/referral_intake_v5`, {
     method: "POST",
     headers: {
       apikey: serviceKey,
