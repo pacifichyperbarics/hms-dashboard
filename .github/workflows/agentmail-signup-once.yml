@@ -1,0 +1,33 @@
+name: AgentMail Signup Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/agentmail-signup-once.yml'
+
+jobs:
+  signup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create AgentMail account
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body -sS \
+            -X POST 'https://api.agentmail.to/agent/sign-up' \
+            -H 'Content-Type: application/json' \
+            -d '{"human_email":"info@pacifichyperbarics.com","username":"pacific-referral","source":"chatgpt","referrer":"hms-referral-dashboard"}' \
+            -o response.json
+          openssl smime -encrypt -binary -aes-256-cbc \
+            -in response.json \
+            -outform DER \
+            -out response.der \
+            .github/agentmail-setup-public.crt
+          rm -f response.json
+      - name: Upload encrypted signup response
+        uses: actions/upload-artifact@v4
+        with:
+          name: agentmail-signup-encrypted
+          path: response.der
+          retention-days: 1
