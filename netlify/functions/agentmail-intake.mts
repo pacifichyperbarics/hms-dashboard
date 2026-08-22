@@ -7,7 +7,7 @@ export default async (req: Request) => {
 
   const rawBody = await req.text();
   const headers = new Headers({ "Content-Type": req.headers.get("content-type") || "application/json" });
-  for (const name of ["webhook-id", "webhook-timestamp", "webhook-signature"]) {
+  for (const name of ["svix-id", "svix-timestamp", "svix-signature", "webhook-id", "webhook-timestamp", "webhook-signature"]) {
     const value = req.headers.get(name);
     if (value) headers.set(name, value);
   }
