@@ -9,9 +9,42 @@ function clean(value: unknown, max = 5000): string {
   return typeof value === "string" ? value.slice(0, max) : "";
 }
 
-async function sha256Hex(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+function b64Bytes(value: string): Uint8Array {
+  const bin = atob(value);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+  return diff === 0;
+}
+
+async function verifySvix(req: Request, rawBody: string, secret: string): Promise<boolean> {
+  const id = req.headers.get("webhook-id") || "";
+  const timestamp = req.headers.get("webhook-timestamp") || "";
+  const signatures = req.headers.get("webhook-signature") || "";
+  if (!id || !timestamp || !signatures || !secret.startsWith("whsec_")) return false;
+
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > 300) return false;
+
+  const keyBytes = b64Bytes(secret.slice(6));
+  const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const signed = `${id}.${timestamp}.${rawBody}`;
+  const expected = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signed)));
+
+  for (const item of signatures.split(" ")) {
+    const [version, encoded] = item.split(",", 2);
+    if (version !== "v1" || !encoded) continue;
+    try {
+      if (sameBytes(expected, b64Bytes(encoded))) return true;
+    } catch {}
+  }
+  return false;
 }
 
 function htmlToText(html: string): string {
@@ -34,20 +67,21 @@ export default async (req: Request) => {
   const serviceKey = env("SUPABASE_SERVICE_KEY");
   if (!supabaseUrl || !serviceKey) return Response.json({ error: "Database not configured" }, { status: 503 });
 
-  const authRes = await fetch(`${supabaseUrl}/rest/v1/integration_secrets_v1?name=eq.referral_webhook_token_hash&select=ciphertext_b64`, {
+  const secretRes = await fetch(`${supabaseUrl}/rest/v1/integration_runtime_secrets_v1?name=eq.agentmail_webhook_secret&select=secret_value`, {
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
   });
-  if (!authRes.ok) return Response.json({ error: "Webhook authentication unavailable" }, { status: 503 });
-  const authRows = await authRes.json();
-  const expectedHash = clean(authRows?.[0]?.ciphertext_b64, 100);
-  const suppliedToken = req.headers.get("x-referral-intake-token") || "";
-  if (!expectedHash || !suppliedToken || (await sha256Hex(suppliedToken)) !== expectedHash) {
+  if (!secretRes.ok) return Response.json({ error: "Webhook verification unavailable" }, { status: 503 });
+  const secretRows = await secretRes.json();
+  const webhookSecret = clean(secretRows?.[0]?.secret_value, 200);
+
+  const rawBody = await req.text();
+  if (!webhookSecret || !(await verifySvix(req, rawBody, webhookSecret))) {
     return new Response("Unauthorized", { status: 401 });
   }
 
   let payload: any;
   try {
-    payload = await req.json();
+    payload = JSON.parse(rawBody);
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
