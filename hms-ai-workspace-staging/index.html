@@ -30,20 +30,32 @@
     </header>
 
     <section class="status-row" aria-label="System status">
-      <div class="status-item"><span class="status-dot ok"></span><span>Workspace foundation ready</span></div>
-      <div class="status-item"><span class="status-dot"></span><span id="sync-status">Connectors pending</span></div>
-      <div class="status-item"><span class="status-dot"></span><span>Recovery database staged</span></div>
+      <div class="status-item"><span id="backend-dot" class="status-dot"></span><span id="backend-status">Checking backend…</span></div>
+      <div class="status-item"><span class="status-dot"></span><span id="sync-status">Gmail/Calendar sync not configured</span></div>
+      <div class="status-item"><span class="status-dot ok"></span><span>Recovery database staged</span></div>
+      <div class="status-item"><span class="status-dot ok"></span><span>Role permissions deployed</span></div>
     </section>
 
     <section class="section-head">
       <div>
         <h2>Work areas</h2>
-        <p>Select an area to preview what each HMS role will have available as we connect the live workflows.</p>
+        <p>Select an area to preview what each HMS role will have available. This public staging page contains no company records, credentials, or patient information.</p>
       </div>
       <input id="search" type="search" placeholder="Find a work area" aria-label="Find a work area" />
     </section>
 
     <section id="capability-grid" class="grid" aria-live="polite"></section>
+
+    <section class="panel">
+      <h2>Build status</h2>
+      <div id="build-status" class="architecture">
+        <div class="node strong">Dashboard shell</div><div class="arrow">→</div>
+        <div class="node">Identity & roles</div><div class="arrow">→</div>
+        <div class="node">Gmail / Calendar sync</div><div class="arrow">→</div>
+        <div class="node">Daily Brief</div>
+      </div>
+      <p id="version-status" class="small">Loading deployed backend version…</p>
+    </section>
 
     <section class="panel">
       <h2>System design</h2>
@@ -53,7 +65,7 @@
         <div class="node">HMS Skills + Connectors</div><div class="arrow">→</div>
         <div class="node">HMS Recovery & Cache DB</div>
       </div>
-      <p class="small">This staging page is independent of any one ChatGPT login. Canonical capability definitions, schemas, Skills, and recovery instructions live in GitHub.</p>
+      <p class="small">The ChatGPT account is a replaceable interface. Canonical code, capabilities, Skills, schema, and recovery instructions remain outside the account.</p>
     </section>
   </main>
   <script src="./app.js" defer></script>
