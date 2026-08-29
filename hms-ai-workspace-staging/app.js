@@ -9,9 +9,18 @@
   const healthUrl = 'https://sojtoyybfolcxezkppxc.supabase.co/functions/v1/hms-health';
 
   let capabilities = [];
+  let healthState = null;
 
   function modeLabel(mode) {
     return mode === 'program' ? 'Program' : 'Subscription chat';
+  }
+
+  function capabilityButtonLabel(item) {
+    if (item.id === 'hms-daily-brief' || item.id === 'daily-brief') {
+      const brief = healthState?.dailyBrief;
+      return brief?.ready ? `Ready · ${brief.priorityCount ?? 0} priorities` : 'Brief initializing';
+    }
+    return item.id === 'corporate-knowledge' ? 'Knowledge index next' : 'Connector pending';
   }
 
   function render() {
@@ -37,7 +46,7 @@
       const footer = document.createElement('footer');
       const badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = modeLabel(item.mode);
       const button = document.createElement('button'); button.type = 'button'; button.disabled = true;
-      button.textContent = item.id === 'corporate-knowledge' ? 'Knowledge index next' : 'Connector pending';
+      button.textContent = capabilityButtonLabel(item);
       footer.append(badge, button);
       card.append(category, heading, description, footer);
       grid.appendChild(card);
@@ -56,24 +65,25 @@
       const response = await fetch(healthUrl, { cache: 'no-store' });
       if (!response.ok) throw new Error(`Health endpoint returned ${response.status}`);
       const health = await response.json();
+      healthState = health;
       backendDot.classList.add('ok');
       backendStatus.textContent = `Backend healthy · ${health.capabilityCount ?? 0} capabilities`;
 
       const gmail = health.sync?.gmail;
       const calendar = health.sync?.google_calendar;
-      if (gmail || calendar) {
-        const parts = [];
-        if (gmail) parts.push(`Gmail ${gmail.status}`);
-        if (calendar) parts.push(`Calendar ${calendar.status}`);
-        syncStatus.textContent = parts.join(' · ');
-      } else {
-        syncStatus.textContent = 'Gmail/Calendar incremental sync not configured yet';
-      }
+      const parts = [];
+      if (gmail) parts.push(`Gmail ${gmail.status}`);
+      if (calendar) parts.push(`Calendar ${calendar.status}`);
+      if (health.dailyBrief?.ready) parts.push(`Daily Brief ready (${health.dailyBrief.priorityCount ?? 0} priorities)`);
+      syncStatus.textContent = parts.length ? parts.join(' · ') : 'Gmail/Calendar incremental sync not configured yet';
 
       const identity = (health.versions || []).find((item) => item.component === 'identity_permissions');
-      versionStatus.textContent = identity
-        ? `Backend identity/permissions ${identity.version} deployed. Health checked ${new Date(health.checkedAt).toLocaleString()}.`
-        : `Backend healthy. Health checked ${new Date(health.checkedAt).toLocaleString()}.`;
+      const briefVersion = (health.versions || []).find((item) => item.component === 'daily_brief');
+      const versions = [];
+      if (identity) versions.push(`identity/permissions ${identity.version}`);
+      if (briefVersion) versions.push(`Daily Brief ${briefVersion.version}`);
+      versionStatus.textContent = `${versions.length ? `Backend ${versions.join(' · ')} deployed. ` : 'Backend healthy. '}Health checked ${new Date(health.checkedAt).toLocaleString()}.`;
+      render();
     } catch (error) {
       backendDot.classList.remove('ok');
       backendStatus.textContent = 'Backend status unavailable';
