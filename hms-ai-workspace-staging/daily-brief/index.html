@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HMS AI · Daily Brief</title>
+  <link rel="stylesheet" href="./private.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">Hyperbaric Management Services</div>
+        <h1>Daily Brief</h1>
+        <p id="brief-meta" class="muted">Secure HMS workspace</p>
+      </div>
+      <div id="session-state" class="session-state">Checking session…</div>
+    </header>
+
+    <section id="locked" class="panel" hidden>
+      <h2>Sign-in required</h2>
+      <p>This page retrieves HMS operational content only after a valid HMS Supabase session is present.</p>
+    </section>
+
+    <section id="summary" class="metrics" hidden>
+      <div class="metric"><strong id="priority-count">0</strong><span>Priorities</span></div>
+      <div class="metric"><strong id="email-count">0</strong><span>Email candidates</span></div>
+      <div class="metric"><strong id="calendar-count">0</strong><span>Calendar events</span></div>
+    </section>
+
+    <section id="sections" class="brief-grid" hidden></section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./runtime-config.js"></script>
+  <script src="./daily-brief.js"></script>
+</body>
+</html>
