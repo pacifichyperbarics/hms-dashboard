@@ -25,7 +25,9 @@
       submit.disabled = true; status.textContent = 'Requesting secure sign-in link…';
       const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: window.location.href.split('#')[0] } });
       submit.disabled = false;
-      status.textContent = error ? 'This address is not authorized or sign-in could not be sent.' : 'Sign-in link sent. Open the email on this device to continue.';
+      if (!error) status.textContent = 'Sign-in link sent. Open the email on this device to continue.';
+      else if (error.status === 429 || error.code === 'over_email_send_rate_limit') status.textContent = 'Too many sign-in links were requested. Please wait before requesting another.';
+      else status.textContent = 'Sign-in could not be sent. Please verify the address or try again later.';
     });
   }
 
