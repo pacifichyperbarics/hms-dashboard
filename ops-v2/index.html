@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HMS Clinic Operations Dashboard v2</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="auth-screen" class="auth-screen">
+    <form id="login-form" class="auth-card">
+      <div class="brand-mark">HMS</div>
+      <h1>Clinic Operations Dashboard</h1>
+      <p>Secure preview environment</p>
+      <label>Email<input id="login-email" type="email" autocomplete="email" value="info@pacifichyperbarics.com" required></label>
+      <label>Password<input id="login-password" type="password" autocomplete="current-password" required></label>
+      <button type="submit">Sign in</button>
+      <div id="login-status" class="status-text"></div>
+    </form>
+  </div>
+
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">HMS OPERATIONS</div>
+        <h1>Clinic Operations Dashboard</h1>
+        <p id="last-refresh">Loading operational data…</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="refresh-btn" class="secondary">Refresh</button>
+        <button id="signout-btn">Sign out</button>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="toolbar panel">
+        <input id="search-input" type="search" placeholder="Search clinics, status, ownership, next action…">
+        <select id="category-filter"><option value="all">All clinics</option><option value="operations">Operations</option><option value="buildout">Buildout</option></select>
+        <select id="indicator-filter"><option value="all">All indicators</option><option value="green">Green</option><option value="yellow">Yellow</option><option value="red">Red</option></select>
+      </section>
+
+      <section id="metrics" class="metrics"></section>
+
+      <section class="section-heading"><div><span class="eyebrow">PORTFOLIO</span><h2>Clinic operating cards</h2></div><button id="add-event-btn" class="secondary">Add event</button></section>
+      <section id="clinic-grid" class="clinic-grid"></section>
+
+      <section class="lower-grid">
+        <article class="panel">
+          <div class="panel-heading"><div><span class="eyebrow">CALENDAR</span><h2>Upcoming events</h2></div></div>
+          <div id="events-list" class="list-stack"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-heading"><div><span class="eyebrow">ACTIVITY</span><h2>Recent changes</h2></div></div>
+          <div id="activity-list" class="list-stack"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="clinic-dialog" class="modal"></dialog>
+  <dialog id="event-dialog" class="modal compact-modal">
+    <form id="event-form" method="dialog" class="modal-form">
+      <div class="modal-head"><div><span class="eyebrow">NEW EVENT</span><h2>Add operational event</h2></div><button type="button" data-close="event-dialog" class="icon-button">×</button></div>
+      <label>Clinic<select id="event-clinic"></select></label>
+      <label>Title<input id="event-title" required></label>
+      <div class="form-grid"><label>Type<select id="event-type"><option>operations</option><option>staffing</option><option>financial</option><option>construction</option><option>equipment</option><option>marketing</option><option>clinical</option><option>meeting</option><option>deadline</option><option>other</option></select></label><label>Owner<input id="event-owner"></label></div>
+      <div class="form-grid"><label>Starts<input id="event-start" type="datetime-local" required></label><label>Ends<input id="event-end" type="datetime-local"></label></div>
+      <label>Description<textarea id="event-description" rows="4"></textarea></label>
+      <div id="event-status" class="status-text"></div>
+      <div class="modal-actions"><button type="button" data-close="event-dialog" class="secondary">Cancel</button><button type="submit">Save event</button></div>
+    </form>
+  </dialog>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
