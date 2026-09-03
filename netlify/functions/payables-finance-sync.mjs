@@ -77,7 +77,7 @@ async function databaseStatus() {
     rest(config, 'hms_finance_vendors?select=id&vendor_key=like.legacy-payables%3A*'),
     rest(config, 'hms_finance_recurring_rules?select=id&external_key=like.legacy-payables-rule%3A*'),
     rest(config, 'hms_finance_payables?select=id&source_type=eq.legacy_payables_blob'),
-    rest(config, 'hms_finance_authorizations?select=id,metadata&metadata-%3E%3Eshadow_sync=eq.true&status=eq.authorized'),
+    rest(config, 'hms_finance_authorizations?select=id,metadata&status=eq.authorized'),
   ]);
   const sync = syncRows?.[0] || null;
   const parity = sync?.stats?.parity || null;
@@ -86,7 +86,7 @@ async function databaseStatus() {
     vendors: vendors.length,
     recurringRules: rules.length,
     payables: payables.length,
-    activeAuthorizations: authorizations.length,
+    activeAuthorizations: authorizations.filter((row) => row?.metadata?.shadow_sync === true).length,
     sync,
     parity,
     passed: Boolean(sync?.status === 'success' && parity?.matched === true),
