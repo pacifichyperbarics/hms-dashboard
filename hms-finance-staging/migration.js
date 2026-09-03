@@ -14,11 +14,7 @@
     const headers={'Content-Type':'application/json'};
     const token=API.token();
     if(token)headers['x-hms-device-token']=token;
-    const response=await fetch(SYNC,{
-      method,
-      headers,
-      body:method==='POST'?JSON.stringify(payload||{}):undefined
-    });
+    const response=await fetch(SYNC,{method,headers,body:method==='POST'?JSON.stringify(payload||{}):undefined});
     const body=await response.json().catch(()=>({}));
     if(!response.ok){
       const error=new Error(body.error||'migration_request_failed');
@@ -89,7 +85,44 @@
     }
   }
 
-  async function load(){
+  function renderQc(payload){
+    const latest=payload?.latest||null;
+    const result=payload?.result||latest?.after_state||null;
+    const status=$('qcStatus');
+    $('runQc').disabled=!isAdmin;
+
+    if(!result){
+      status.textContent='Not yet run from this interface';
+      status.className='gate-status warn';
+      set('qcDetail','An admin can run the rollback-safe checks before parity. No payable, payment, bank, or journal test records will remain.');
+      set('qcCore','Not recorded');
+      set('qcLedger','Not recorded');
+      set('qcLastRun','Never');
+      return;
+    }
+
+    const tests=result.core?.tests||{};
+    const values=Object.values(tests);
+    const passed=values.filter(test=>test?.passed===true).length;
+    const total=values.length;
+    set('qcCore',`${passed}/${total} passed`);
+    set('qcLedger',result.ledger_headers?.passed?'Passed':'Failed');
+    set('qcLastRun',fmtDate(latest?.occurred_at||result.ran_at));
+
+    if(result.passed){
+      status.textContent='System QC passed';
+      status.className='gate-status good';
+      set('qcDetail','Core workflows and posted-ledger safeguards passed. The test transaction rolled back; only this result was added to the audit trail.');
+    }else{
+      status.textContent='System QC failed';
+      status.className='gate-status bad';
+      const failures=Object.entries(tests).filter(([,test])=>!test?.passed).map(([name])=>name.replaceAll('_',' '));
+      if(result.ledger_headers?.passed===false)failures.push('posted ledger protection');
+      set('qcDetail',failures.length?`Failed: ${failures.join(', ')}.`:'Review the recorded QC result before parity.');
+    }
+  }
+
+  async function loadMigration(){
     set('statusDetail','Loading migration status…');
     try{render(await syncRequest('GET'));}
     catch(error){
@@ -107,6 +140,20 @@
     }
   }
 
+  async function loadQc(){
+    try{renderQc(await API.request(API.endpoints.qc));}
+    catch(error){
+      $('runQc').disabled=!isAdmin;
+      set('qcStatus',error.status===403?'Admin browser required':'QC status unavailable');
+      $('qcStatus').className='gate-status bad';
+      set('qcDetail',error.status===403?'Only an admin browser can run Finance QC.':'Could not read the latest QC result.');
+    }
+  }
+
+  async function loadAll(){
+    await Promise.all([loadMigration(),loadQc()]);
+  }
+
   async function showWorkspace(device){
     $('loginPanel').hidden=true;
     $('workspace').hidden=false;
@@ -114,7 +161,8 @@
     set('deviceState',`${device?.displayName||'Authorized browser'}${isAdmin?' · Admin':' · Not admin'}`);
     $('runSync').disabled=true;
     $('initializeMonth').disabled=!isAdmin;
-    await load();
+    $('runQc').disabled=!isAdmin;
+    await loadAll();
   }
 
   $('loginForm').addEventListener('submit',async event=>{
@@ -132,7 +180,25 @@
     }finally{button.disabled=false;}
   });
 
-  $('refresh').addEventListener('click',load);
+  $('refresh').addEventListener('click',loadAll);
+
+  $('runQc').addEventListener('click',async()=>{
+    const button=$('runQc');
+    button.disabled=true;
+    set('qcStatus','Running rollback-safe QC…');
+    $('qcStatus').className='gate-status warn';
+    set('qcDetail','Testing core workflows and ledger safeguards. All QA records are contained in rollback transactions.');
+    try{
+      const response=await API.request(API.endpoints.qc,'POST',{});
+      renderQc({result:response.result,latest:{occurred_at:response.result?.ran_at,after_state:response.result}});
+    }catch(error){
+      set('qcStatus','System QC failed to run');
+      $('qcStatus').className='gate-status bad';
+      set('qcDetail',error.code||'The QC service was unavailable.');
+    }finally{
+      button.disabled=!isAdmin;
+    }
+  });
 
   $('initializeMonth').addEventListener('click',async()=>{
     const button=$('initializeMonth');
@@ -144,7 +210,7 @@
     set('statusDetail','Creating the selected monthly work area in Legacy Payables. No approval, payment, cutover, or Postgres copy is occurring.');
     try{
       await syncRequest('POST',{action:'initialize-month',month});
-      await load();
+      await loadMigration();
     }catch(error){
       set('gateStatus','Month initialization failed');
       $('gateStatus').className='gate-status bad';
@@ -163,7 +229,7 @@
     set('statusDetail','Copying the persisted legacy monthly instances into the Postgres shadow and checking records, coding, location, rules, review flags, and approval state. No authority change or payment occurs.');
     try{
       await syncRequest('POST',{action:'sync'});
-      await load();
+      await loadMigration();
     }catch(error){
       const noMonth=error.code==='legacy_payables_no_persisted_month_runs';
       set('gateStatus',error.code==='migration_locked_after_finance_activity'?'Parity sync locked':noMonth?'Initialize a legacy month':'Parity sync failed');
