@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HMS Monthly Payables</title>
+<meta name="description" content="HMS monthly payables approval checklist with recurring bills, monthly allocations, payment history, and source descriptions.">
+<style>
+:root{--navy:#173f67;--blue:#2d6da3;--bg:#f3f6f9;--panel:#fff;--line:#d8e0e8;--text:#17212b;--muted:#66717c;--green:#26734d;--greenbg:#e9f5ee;--amber:#946200;--amberbg:#fff6dc;--red:#a23b36;--redbg:#fff0ef;--soft:#eef4f8}
+*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.42 Arial,Helvetica,sans-serif}
+main{max-width:1500px;margin:0 auto;padding:20px 18px 50px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:14px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}h1{font-size:30px;line-height:1.1;margin:3px 0 4px;color:var(--navy)}.sub{color:var(--muted);font-size:13px}.top-controls{display:flex;gap:8px;align-items:end;flex-wrap:wrap}.field label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin:0 0 4px}.field input,.field select,.field textarea{font:inherit;border:1px solid #c8d2dc;border-radius:8px;padding:8px 9px;background:#fff;color:var(--text);min-height:38px}.field textarea{min-height:76px;resize:vertical}.btn{font:inherit;border:1px solid #c8d2dc;background:#fff;color:var(--text);border-radius:8px;padding:9px 11px;font-weight:700;cursor:pointer;min-height:38px}.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}.btn.danger{color:var(--red)}.btn:disabled{opacity:.55;cursor:not-allowed}.status{margin:6px 0 12px;color:var(--muted);font-size:12px;min-height:18px}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0 16px}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px}.card span{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}.card strong{display:block;font-size:25px;margin-top:5px}.card.approved strong{color:var(--green)}.card.remaining strong{color:var(--amber)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}.tabs{display:flex;gap:7px;flex-wrap:wrap}.tabbtn{font:inherit;border:1px solid #c8d2dc;background:#fff;border-radius:8px;padding:8px 11px;font-weight:700;cursor:pointer}.tabbtn.active{background:var(--navy);color:#fff;border-color:var(--navy)}.search{margin-left:auto;min-width:260px}.search input{width:100%;font:inherit;border:1px solid #c8d2dc;border-radius:8px;padding:8px 9px;min-height:38px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:1180px}th,td{padding:8px 8px;border-bottom:1px solid #edf0f3;text-align:left;vertical-align:middle}th{background:#f8fafc;color:#5e6a76;font-size:11px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;z-index:1}.approve-col{width:58px;text-align:center}.approve{width:22px;height:22px;accent-color:var(--green)}.payee{font-weight:700}.meta{color:var(--muted);font-size:12px;margin-top:2px}.amount-input{width:104px;text-align:right;border:1px solid #c8d2dc;border-radius:7px;padding:6px 7px;font:inherit;font-variant-numeric:tabular-nums}.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.source{max-width:360px;font-size:12px;color:#465563}.pill{display:inline-block;border-radius:999px;padding:3px 7px;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;background:#edf2f6;color:#556270}.pill.variable{background:var(--amberbg);color:var(--amber)}.pill.review{background:var(--redbg);color:var(--red)}tr.approved-row td{background:#f6fbf8}tr.review-row:not(.approved-row) td:first-child{border-left:4px solid #d7a62a}.smallbtn{font:inherit;border:1px solid #d0d7de;background:#fff;border-radius:7px;padding:5px 7px;font-size:11px;cursor:pointer}.empty{padding:28px;text-align:center;color:var(--muted)}
+.section{margin-top:18px}.section h2{font-size:18px;color:var(--navy);margin:0 0 8px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.formcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.formgrid .full{grid-column:1/-1}.checkline{display:flex;align-items:center;gap:8px;min-height:38px}.checkline input{width:18px;height:18px}.emailbox{background:var(--soft);border:1px solid #ccdce8;border-radius:12px;padding:14px}.emailaddress{font-size:20px;font-weight:800;color:var(--navy);word-break:break-word}.emailnote{font-size:12px;color:var(--muted);margin-top:5px}.format{margin-top:10px;background:#fff;border:1px solid #d8e0e8;border-radius:8px;padding:10px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}.notice{margin-top:10px;padding:10px 11px;border-left:4px solid #d7a62a;background:var(--amberbg);font-size:12px}.totals-table{width:100%;min-width:0}.totals-table td,.totals-table th{position:static}.right{text-align:right}.hidden{display:none!important}
+@media(max-width:900px){main{padding:14px 10px 35px}.top{display:block}.top-controls{margin-top:12px}.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.formgrid{grid-template-columns:1fr}.search{margin-left:0;min-width:100%;width:100%}}
+@media(max-width:480px){h1{font-size:25px}.cards{grid-template-columns:1fr 1fr}.card strong{font-size:20px}.top-controls .field{width:100%}.top-controls input{width:100%}}
+</style>
+</head>
+<body>
+<main id="app">
+  <div class="top">
+    <div>
+      <div class="eyebrow">Hyperbaric Management Services</div>
+      <h1>Monthly Payables Approval</h1>
+      <div class="sub">Approve recurring bills and monthly allocations. Source history is shown where available.</div>
+    </div>
+    <div class="top-controls">
+      <div class="field"><label for="month">Approval month</label><input id="month" type="month"></div>
+      <button class="btn" id="refresh" type="button">Refresh</button>
+    </div>
+  </div>
+  <div class="status" id="status" aria-live="polite">Loading payables...</div>
+
+  <section class="cards" aria-label="Monthly totals">
+    <div class="card"><span>Expected total</span><strong id="expectedTotal">$0.00</strong></div>
+    <div class="card approved"><span>Approved</span><strong id="approvedTotal">$0.00</strong></div>
+    <div class="card remaining"><span>Remaining</span><strong id="remainingTotal">$0.00</strong></div>
+    <div class="card"><span>Approved items</span><strong id="approvedCount">0 / 0</strong></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="tabs" role="tablist" aria-label="Payable type">
+      <button class="tabbtn active" type="button" data-kind="bill">Bills & Payables</button>
+      <button class="tabbtn" type="button" data-kind="allocation">Allocations / Transfers</button>
+      <button class="tabbtn" type="button" data-kind="all">All</button>
+    </div>
+    <div class="search"><input id="search" type="search" placeholder="Search payee, clinic, category or source"></div>
+  </div>
+
+  <section class="panel">
+    <div class="tablewrap">
+      <table aria-label="Monthly payables checklist">
+        <thead><tr><th class="approve-col">Approve</th><th>Payee / item</th><th>Clinic</th><th>Category</th><th class="right">Approve amount</th><th>Last payment</th><th>Source description</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="empty hidden" id="empty">No items match this view.</div>
+  </section>
+
+  <section class="section grid2">
+    <div class="formcard">
+      <h2>Add payable manually</h2>
+      <form id="addForm" class="formgrid">
+        <div class="field"><label for="newName">Payee / item</label><input id="newName" required maxlength="160"></div>
+        <div class="field"><label for="newAmount">Expected amount</label><input id="newAmount" type="number" min="0" step="0.01" value="0"></div>
+        <div class="field"><label for="newClinic">Clinic / location</label><input id="newClinic" maxlength="100" placeholder="Corporate / HMS"></div>
+        <div class="field"><label for="newCategory">Category</label><input id="newCategory" maxlength="100" placeholder="Other"></div>
+        <div class="field full"><label for="newDesc">Description / support</label><textarea id="newDesc" maxlength="700" placeholder="What is this payment for?"></textarea></div>
+        <div class="checkline"><input id="newRecurring" type="checkbox" checked><label for="newRecurring">Repeat every month</label></div>
+        <div class="checkline"><input id="newVariable" type="checkbox"><label for="newVariable">Amount varies</label></div>
+        <div class="full"><button class="btn primary" type="submit">Add to checklist</button></div>
+      </form>
+    </div>
+
+    <div class="emailbox">
+      <h2>Email intake</h2>
+      <div class="emailaddress">hms@healtho2.com</div>
+      <div class="emailnote">The app includes an inbound email parser and can create a review item from a structured payable email.</div>
+      <div class="format">Subject: PAYABLE: Vendor Name | 1250.00 | 2026-09-10 | Laguna
+
+Vendor: Vendor Name
+Amount: 1250.00
+Due: 2026-09-10
+Clinic: Laguna
+Category: Marketing
+Description: September marketing invoice
+Recurring: yes</div>
+      <div class="notice"><strong>Mailbox routing:</strong> the payables endpoint is built, but Google Workspace still needs a one-time mail-to-webhook bridge from hms@healtho2.com to the app. Until that routing is connected, emailed items will not automatically appear here.</div>
+    </div>
+  </section>
+
+  <section class="section formcard">
+    <h2>Totals by category</h2>
+    <div class="tablewrap"><table class="totals-table"><thead><tr><th>Category</th><th class="right">Expected</th><th class="right">Approved</th><th class="right">Remaining</th></tr></thead><tbody id="categoryTotals"></tbody></table></div>
+  </section>
+</main>
+<script>
+(() => {
+  const root=document.getElementById('app');
+  if(root.dataset.init==='1') return; root.dataset.init='1';
+  const API='/.netlify/functions/payables';
+  const $=id=>document.getElementById(id);
+  const els={month:$('month'),refresh:$('refresh'),status:$('status'),expected:$('expectedTotal'),approved:$('approvedTotal'),remaining:$('remainingTotal'),count:$('approvedCount'),rows:$('rows'),empty:$('empty'),search:$('search'),addForm:$('addForm'),cat:$('categoryTotals')};
+  const state={data:null,month:'',kind:'bill',query:'',busy:false};
+  const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n)||0);
+  const esc=s=>String(s??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));
+  function defaultMonth(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+  function setStatus(msg,err=false){els.status.textContent=msg;els.status.style.color=err?'#a23b36':'';}
+  function getRun(){ return state.data?.state?.runs?.[state.month]||{approvals:{},oneTimeItems:[]}; }
+  function allItems(){ const s=state.data?.state; if(!s) return []; const run=getRun(); return [...(s.items||[]).filter(x=>x.active!==false),...(run.oneTimeItems||[])]; }
+  function approval(item){ const a=getRun().approvals?.[item.id]; return a||{approved:false,amount:Number(item.expectedAmount)||0,note:''}; }
+  function filtered(){ const q=state.query.trim().toLowerCase(); return allItems().filter(item=>{
+    if(state.kind!=='all' && (item.kind||'bill')!==state.kind) return false;
+    if(!q) return true;
+    return [item.name,item.clinic,item.category,item.description,item.sourceDescription,item.sourcePeriod].some(v=>String(v||'').toLowerCase().includes(q));
+  }); }
+  function render(){ if(!state.data) return; const items=filtered(); const all=allItems();
+    let expected=0,approved=0,approvedCount=0;
+    for(const item of all){ const a=approval(item); const amt=Number(a.amount ?? item.expectedAmount)||0; expected+=amt; if(a.approved){approved+=amt;approvedCount++;} }
+    els.expected.textContent=money(expected); els.approved.textContent=money(approved); els.remaining.textContent=money(Math.max(0,expected-approved)); els.count.textContent=`${approvedCount} / ${all.length}`;
+    els.rows.innerHTML=items.map(item=>{ const a=approval(item); const approvedClass=a.approved?'approved-row':''; const reviewClass=item.review?'review-row':''; const last=item.lastPaymentDate?`${esc(item.lastPaymentDate)} · ${money(item.lastPaymentAmount)}`:(item.lastPaymentAmount!=null?`date unavailable · ${money(item.lastPaymentAmount)}`:'not available'); const manual=item.manual||item.email; return `<tr class="${approvedClass} ${reviewClass}" data-id="${esc(item.id)}">
+      <td class="approve-col"><input class="approve" type="checkbox" ${a.approved?'checked':''} aria-label="Approve ${esc(item.name)}"></td>
+      <td><div class="payee">${esc(item.name)}</div><div class="meta">${esc(item.description||'')}${item.variable?' · <span class="pill variable">variable</span>':''}${item.review?' · <span class="pill review">review</span>':''}</div></td>
+      <td>${esc(item.clinic||'')}</td><td>${esc(item.category||'')}</td>
+      <td class="num"><input class="amount-input" type="number" min="0" step="0.01" value="${Number(a.amount ?? item.expectedAmount ?? 0).toFixed(2)}" aria-label="Approval amount for ${esc(item.name)}"></td>
+      <td><div>${last}</div><div class="meta">${esc(item.sourcePeriod||'')}</div></td>
+      <td class="source">${esc(item.sourceDescription||'')}</td>
+      <td>${manual?'<button type="button" class="smallbtn delete">Remove</button>':''}</td></tr>`; }).join('');
+    els.empty.classList.toggle('hidden',items.length!==0);
+    bindRows(); renderCategoryTotals(all);
+  }
+  function renderCategoryTotals(items){ const map=new Map(); for(const item of items){ const a=approval(item); const amt=Number(a.amount ?? item.expectedAmount)||0; const key=item.category||'Other'; if(!map.has(key)) map.set(key,{e:0,a:0}); const v=map.get(key); v.e+=amt; if(a.approved)v.a+=amt; } els.cat.innerHTML=[...map.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="num">${money(v.e)}</td><td class="num">${money(v.a)}</td><td class="num">${money(Math.max(0,v.e-v.a))}</td></tr>`).join(''); }
+  function bindRows(){ els.rows.querySelectorAll('tr[data-id]').forEach(tr=>{ const id=tr.dataset.id; const cb=tr.querySelector('.approve'); const amount=tr.querySelector('.amount-input'); const del=tr.querySelector('.delete');
+    cb.addEventListener('change',()=>saveApproval(id,cb.checked,amount.value));
+    amount.addEventListener('change',()=>saveApproval(id,cb.checked,amount.value));
+    if(del) del.addEventListener('click',()=>removeItem(id));
+  }); }
+  async function call(body){ const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}); const j=await r.json().catch(()=>({})); if(!r.ok||!j.ok) throw new Error(j.error||`Request failed (${r.status})`); return j; }
+  async function load(){ if(state.busy) return; state.busy=true; setStatus('Loading payables...'); try{ const r=await fetch(`${API}?month=${encodeURIComponent(state.month)}`,{cache:'no-store'}); const j=await r.json(); if(!r.ok||!j.ok) throw new Error(j.error||'Unable to load'); state.data=j; render(); setStatus(`Ready · ${state.month} · last saved ${new Date(j.state.updatedAt).toLocaleString()}`); }catch(e){ setStatus(e.message,true); }finally{state.busy=false;} }
+  async function saveApproval(id,approved,amount){ try{ setStatus('Saving...'); const j=await call({action:'approve',month:state.month,id,approved,amount:Number(amount)||0}); state.data={...state.data,state:j.state}; render(); setStatus('Saved.'); }catch(e){setStatus(e.message,true); await load();} }
+  async function removeItem(id){ if(!confirm('Remove this manually added item from future checklists?')) return; try{setStatus('Removing...');const j=await call({action:'delete-item',month:state.month,id});state.data={...state.data,state:j.state};render();setStatus('Removed.');}catch(e){setStatus(e.message,true);} }
+  document.querySelectorAll('.tabbtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.kind=b.dataset.kind;render();}));
+  els.search.addEventListener('input',()=>{state.query=els.search.value;render();});
+  els.refresh.addEventListener('click',load);
+  els.month.addEventListener('change',()=>{ if(!/^\d{4}-\d{2}$/.test(els.month.value)) return; state.month=els.month.value; load(); });
+  els.addForm.addEventListener('submit',async e=>{e.preventDefault(); const item={name:$('newName').value,expectedAmount:Number($('newAmount').value)||0,clinic:$('newClinic').value||'Unassigned',category:$('newCategory').value||'Manual',description:$('newDesc').value,recurring:$('newRecurring').checked,variable:$('newVariable').checked,kind:'bill'}; try{setStatus('Adding payable...');const j=await call({action:'add',month:state.month,item});state.data={...state.data,state:j.state};els.addForm.reset();$('newRecurring').checked=true;$('newAmount').value='0';render();setStatus('Payable added.');}catch(err){setStatus(err.message,true);} });
+  state.month=defaultMonth(); els.month.value=state.month; load();
+})();
+</script>
+</body>
+</html>
