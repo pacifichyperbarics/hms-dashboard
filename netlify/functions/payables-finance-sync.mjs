@@ -4,6 +4,7 @@ import { syncPayablesToFinance } from './lib/payables-finance-shadow.mjs';
 
 const STORE_NAME = 'hms-payables';
 const STATE_KEY = 'state-v1';
+const REQUEST_TIMEOUT_MS = 10000;
 const PROTECTED_STATUSES = new Set(['payment_pending','paid','reconciled','posted','cancelled']);
 
 function env(name) {
@@ -26,6 +27,24 @@ function validMonth(value) {
   return /^\d{4}-(0[1-9]|1[0-2])$/.test(text) ? text : null;
 }
 
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error || 'unknown_error');
+}
+
+async function withTimeout(promise, label, timeoutMs = REQUEST_TIMEOUT_MS) {
+  let timer;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label}_timeout`)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 function supabaseConfig() {
   const url = env('SUPABASE_URL').replace(/\/$/, '');
   const key = env('SUPABASE_SERVICE_KEY') || env('SUPABASE_SERVICE_ROLE_KEY');
@@ -41,11 +60,24 @@ async function rest(config, path, { method = 'GET', body, prefer = '' } = {}) {
   };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (prefer) headers.Prefer = prefer;
-  const response = await fetch(`${config.url}/rest/v1/${path}`, {
-    method,
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let response;
+  try {
+    response = await fetch(`${config.url}/rest/v1/${path}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error?.name === 'AbortError') throw new Error('supabase_request_timeout');
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+
   if (!response.ok) {
     const detail = await response.text().catch(() => '');
     throw new Error(`Supabase request failed ${response.status}: ${detail.slice(0, 300)}`);
@@ -67,7 +99,7 @@ async function audit(config, action, metadata = {}) {
       },
     });
   } catch (error) {
-    console.error('Payables migration audit failed', error instanceof Error ? error.message : error);
+    console.error('Payables migration audit failed', errorMessage(error));
   }
 }
 
@@ -138,8 +170,12 @@ function summarizeSource(state) {
 }
 
 async function sourceSnapshot() {
-  const store = getStore(STORE_NAME, { consistency: 'strong' });
-  const state = await store.get(STATE_KEY, { type: 'json' });
+  // Object-form getStore is required when selecting store-level consistency.
+  const store = getStore({ name: STORE_NAME, consistency: 'strong' });
+  const state = await withTimeout(
+    store.get(STATE_KEY, { type: 'json' }),
+    'legacy_blob_read',
+  );
   return { store, state, source: summarizeSource(state) };
 }
 
@@ -153,14 +189,14 @@ async function initializeSourceMonth(month) {
     const now = new Date().toISOString();
     state.runs[month] = { month, approvals: {}, createdAt: now, updatedAt: now };
     state.updatedAt = now;
-    await snapshot.store.setJSON(STATE_KEY, state);
+    await withTimeout(snapshot.store.setJSON(STATE_KEY, state), 'legacy_blob_write');
   }
   return { ok: true, initialized: !existed, month, source: summarizeSource(state) };
 }
 
 async function databaseStatus() {
   const config = supabaseConfig();
-  if (!config) return { configured: false };
+  if (!config) return { configured: false, error: 'supabase_not_configured' };
   const [syncRows, vendors, rules, payables, authorizations] = await Promise.all([
     rest(config, 'hms_sync_state?select=connector,source_account,last_source_timestamp,last_attempt_at,last_success_at,status,error_text,stats&connector=eq.payables_blob&source_account=eq.hms-payables%2Fstate-v1&limit=1'),
     rest(config, 'hms_finance_vendors?select=id&vendor_key=like.legacy-payables%3A*'),
@@ -187,23 +223,73 @@ async function databaseStatus() {
   };
 }
 
+async function migrationStatus() {
+  const startedAt = Date.now();
+  const [sourceResult, databaseResult] = await Promise.allSettled([
+    sourceSnapshot(),
+    databaseStatus(),
+  ]);
+
+  const source = sourceResult.status === 'fulfilled'
+    ? sourceResult.value.source
+    : {
+        readable: false,
+        items: 0,
+        activeItems: 0,
+        runs: 0,
+        instances: 0,
+        months: [],
+        readyForParity: false,
+        readinessReason: 'source_status_error',
+        updatedAt: null,
+        error: errorMessage(sourceResult.reason),
+      };
+
+  const database = databaseResult.status === 'fulfilled'
+    ? databaseResult.value
+    : {
+        configured: true,
+        vendors: 0,
+        recurringRules: 0,
+        payables: 0,
+        activeAuthorizations: 0,
+        operationalLegacyCount: 0,
+        syncLocked: false,
+        sync: null,
+        parity: null,
+        parityHasInstances: false,
+        passed: false,
+        error: errorMessage(databaseResult.reason),
+      };
+
+  return {
+    ok: sourceResult.status === 'fulfilled' && databaseResult.status === 'fulfilled',
+    authority: database.passed ? 'parity_passed_not_cut_over' : 'legacy_blob',
+    source,
+    database,
+    diagnostics: {
+      durationMs: Date.now() - startedAt,
+      sourceStatus: sourceResult.status,
+      databaseStatus: databaseResult.status,
+    },
+  };
+}
+
 export default async (req) => {
   if (!['GET', 'POST'].includes(req.method)) return json({ ok: false, error: 'Method not allowed' }, 405);
 
   let authorized = false;
-  try { authorized = await adminDeviceAuthorized(req); } catch { authorized = false; }
+  try { authorized = await adminDeviceAuthorized(req); } catch (error) {
+    console.error('Payables migration authorization failed', errorMessage(error));
+    return json({ ok: false, error: 'Migration authorization check failed' }, 503);
+  }
   if (!authorized) return json({ ok: false, error: 'Admin device required' }, 403);
 
   const config = supabaseConfig();
   try {
     if (req.method === 'GET') {
-      const [snapshot, database] = await Promise.all([sourceSnapshot(), databaseStatus()]);
-      return json({
-        ok: true,
-        authority: database.passed ? 'parity_passed_not_cut_over' : 'legacy_blob',
-        source: snapshot.source,
-        database,
-      });
+      const status = await migrationStatus();
+      return json(status, status.ok ? 200 : 503);
     }
 
     const body = await req.json().catch(() => ({}));
@@ -246,7 +332,11 @@ export default async (req) => {
       sourceInstances: snapshot.source.instances,
     });
 
-    const stats = await syncPayablesToFinance(snapshot.state);
+    const stats = await withTimeout(
+      syncPayablesToFinance(snapshot.state),
+      'legacy_parity_sync',
+      25000,
+    );
     const database = await databaseStatus();
     if (config) await audit(config, database.passed ? 'payables_parity_passed' : 'payables_parity_mismatch', {
       parity: database.parity,
@@ -260,9 +350,13 @@ export default async (req) => {
       authority: database.passed ? 'parity_passed_not_cut_over' : 'legacy_blob',
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = errorMessage(error);
     if (config) await audit(config, 'payables_parity_failed', { message: message.slice(0, 500) });
     console.error('Payables finance sync failed', message);
-    return json({ ok: false, error: req.method === 'GET' ? 'Payables migration status failed' : 'Payables finance sync failed' }, 500);
+    return json({
+      ok: false,
+      error: req.method === 'GET' ? 'Payables migration status failed' : 'Payables finance sync failed',
+      detail: message,
+    }, 500);
   }
 };
