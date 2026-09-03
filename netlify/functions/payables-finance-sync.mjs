@@ -16,20 +16,13 @@ function json(body, status = 200) {
   });
 }
 
-function serverSecretAuthorized(req) {
-  const expected = env('HMS_PAYABLES_SHADOW_TOKEN');
-  if (!expected) return false;
-  const auth = req.headers.get('authorization') || '';
-  const header = req.headers.get('x-hms-shadow-token') || '';
-  return auth === `Bearer ${expected}` || header === expected;
-}
-
 async function adminDeviceAuthorized(req) {
   const token = String(req.headers.get('x-hms-device-token') || '').trim();
   if (!token) return false;
   const url = env('SUPABASE_URL').replace(/\/$/, '');
   const key = env('SUPABASE_SERVICE_KEY') || env('SUPABASE_SERVICE_ROLE_KEY');
   if (!url || !key) return false;
+
   const hash = createHash('sha256').update(token).digest('hex');
   const query = new URLSearchParams({
     select: 'id,device_id,expires_at,revoked_at,hms_devices!inner(id,allowed,is_admin)',
@@ -51,10 +44,8 @@ async function adminDeviceAuthorized(req) {
 export default async (req) => {
   if (req.method !== 'POST') return json({ ok: false, error: 'Method not allowed' }, 405);
 
-  let authorized = serverSecretAuthorized(req);
-  if (!authorized) {
-    try { authorized = await adminDeviceAuthorized(req); } catch { authorized = false; }
-  }
+  let authorized = false;
+  try { authorized = await adminDeviceAuthorized(req); } catch { authorized = false; }
   if (!authorized) return json({ ok: false, error: 'Admin device required' }, 403);
 
   try {
