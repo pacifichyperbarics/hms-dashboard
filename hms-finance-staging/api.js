@@ -7,6 +7,7 @@
     payables:`${base}/hms-finance-payables`,
     payments:`${base}/hms-finance-payments`,
     optimization:`${base}/hms-finance-optimization`,
+    qc:`${base}/hms-finance-qc`,
     legacySync:'/.netlify/functions/payables-finance-sync'
   };
   const TOKEN_KEY='hms.device.token.v1',DEVICE_KEY='hms.device.id.v1';
