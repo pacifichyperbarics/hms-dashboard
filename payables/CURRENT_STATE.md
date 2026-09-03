@@ -2,169 +2,132 @@
 
 **Last updated:** 2026-09-03 PT
 
-This file is the authoritative handoff for continuing the HMS Monthly Payables project in a new ChatGPT conversation. Read this before making changes. Verify only what is needed for the next action. Update this file whenever material state changes.
+This file is the authoritative handoff for the **legacy/current Monthly Payables app** in public deployment repo `pacifichyperbarics/hms-dashboard`. The broader HMS Finance architecture and canonical finance source now live in private repo `pacifichyperbarics/hms-clinic-ops-dashboard`, branch `hms-finance-v1`, at `hms-ai/FINANCE_CURRENT_STATE.md`.
 
-## 1. Goal
+Read both handoffs before changing migration/cutover behavior. Update the relevant handoff whenever material state changes.
 
-Build a low-friction monthly payables approval system for Hyperbaric Management Services (HMS). The intended workflow is that on or around the **3rd of each month**, the user opens one URL, reviews recurring bills/payables, checks the items to approve, sees totals, and handles exceptions. The system should minimize manual work while keeping the user in control of approvals.
+## 1. Current production role
 
-Do not mix ordinary vendor AP with partner/intercompany allocations. Keep those in a separate section.
+Legacy Monthly Payables remains the **authoritative production Payables state** until Blob -> Postgres parity is explicitly proven.
 
-## 2. Live app
+**Current Payables:** https://hms-dashboard-v2.netlify.app/payables/
 
-**Payables app:** https://hms-dashboard-v2.netlify.app/payables/
+**New Finance staging:** https://hms-dashboard-v2.netlify.app/hms-finance-staging/
 
 **Netlify project:** `hms-dashboard-v2`
 
-**Netlify site ID:** `adc6e7e8-12f2-47b7-a6fd-d7eea25e8746`
+**Site ID:** `adc6e7e8-12f2-47b7-a6fd-d7eea25e8746`
 
-The site is intentionally low-friction. Do not add login/authentication steps unless the user explicitly requests them or they are essential for a specific external action.
+Do not retire, overwrite, or silently switch `/payables/` yet.
 
-## 3. Source repository
+## 2. Legacy data store
 
-**GitHub repository:** `pacifichyperbarics/hms-dashboard`
-
-**Production branch:** `master`
-
-Important files:
-
-- `payables/index.html` - browser UI
-- `netlify/functions/payables.mjs` - persistent payables state/API and seeded recurring items
-- `netlify/functions/payables-email.mjs` - inbound structured-email parser
-- `payables/CURRENT_STATE.md` - this handoff file
-- `netlify.toml` - Netlify configuration
-- `package.json` - Netlify dependencies
-
-## 4. Current app behavior
-
-The live app currently supports:
-
-- Monthly approval checklist with checkboxes.
-- Expected total, approved total, remaining total, and approved item count.
-- Editable approval amount per line.
-- Tabs for **Bills & Payables**, **Allocations / Transfers**, and **All**.
-- Search by payee, clinic, category, source, or description.
-- Last-payment date and amount when source history is available.
-- Source/bank description when available.
-- Variable/review flags for items that should not be blindly approved.
-- Manual creation of new payables.
-- Manual items can be recurring or one-time.
-- Totals by category.
-- Central persistence using Netlify Blobs rather than browser-only state.
-- Monthly approval state is stored separately by month.
-
-The payables API uses Netlify Blobs:
-
+Netlify Blobs remains authoritative:
 - Store: `hms-payables`
 - State key: `state-v1`
 
-Do not replace central persistence with localStorage.
+Existing functionality remains:
+- monthly checkbox approvals
+- expected/approved/remaining totals
+- editable approval amount in the legacy UI
+- bills vs allocations/transfers tabs
+- search/filter
+- last-payment/source evidence where available
+- variable/review flags
+- manual recurring and one-time items
+- category totals
+- month-specific approval state
+
+The new Finance V1 control model is stricter: Postgres manual authorizations are full-payable only until a proper split-payable/remaining-balance model exists. Do not infer that a legacy partial checkbox amount is safely equivalent to a completed Postgres authorization.
+
+## 3. Finance migration compatibility code
+
+Current migration/support files include:
+- `netlify/functions/lib/payables-finance-shadow.mjs`
+- `netlify/functions/payables-finance-sync.mjs`
+- `netlify/functions/payables-finance-health.mjs`
+
+The unreliable scheduled shadow-sync function was removed. Supported migration path is an authenticated Finance **admin browser** triggering the server-side mapper; the server reads the Blob privately and mirrors it to Postgres.
+
+The mapper is intended to preserve:
+- stable recurring item identity
+- month/item payable identity
+- vendor/payee
+- amount
+- bill/allocation distinction
+- known category/account and clinic mapping
+- approval/authorization state
+- source/last-payment evidence in metadata
+
+## 4. Current migration gate
+
+The new finance database is structurally live but operational finance tables are still empty:
+- enrolled devices: 0
+- intake: 0
+- payables: 0
+- payments: 0
+- reconciliation matches: 0
+- journal entries/lines: 0
+
+Therefore Blob -> Postgres migration has **not yet been exercised with real production state**.
+
+The next required cutover sequence is:
+1. Open `https://hms-dashboard-v2.netlify.app/hms-finance-staging/` from the intended administrator browser.
+2. Enter the shared HMS password once. Because no finance devices exist yet, this first successful browser becomes the initial admin.
+3. Allow the Finance admin path to trigger/observe the legacy parity sync.
+4. Inspect Postgres vendor/rule/payable/authorization counts plus `hms_sync_state` parity metadata.
+5. Fix and rerun any differences.
+6. Preserve the Blob state as rollback evidence.
+7. Only after parity passes may Postgres become authoritative.
+
+Do not bypass the shared device-access control merely to test migration.
 
 ## 5. Email intake
 
-The user wants bills/payables to be addable by emailing **hms@healtho2.com**.
-
-The inbound parser already exists at:
-
+The original structured legacy parser still exists:
 - `netlify/functions/payables-email.mjs`
 
-A production secret named `PAYABLES_EMAIL_TOKEN` is configured in Netlify. **Do not expose or copy the secret into chat, source documentation, or client-side code.**
+A production `PAYABLES_EMAIL_TOKEN` secret is configured. Never expose it in chat, docs, or browser code.
 
-The email parser can create an unapproved payable from structured input such as:
+The user ultimately wants bill discovery from **hms@healtho2.com**.
 
-`Subject: PAYABLE: Vendor Name | 1250.00 | 2026-09-10 | Laguna`
+Google Workspace/Gmail routing into the legacy parser has not been completed. The newer architecture now also has `hms-finance-intake`, which provides source-key idempotency and a review-before-payable workflow.
 
-Optional body fields:
+**New priority:** complete browser enrollment/parity first. After parity, connect Gmail/email discovery into the new Finance intake layer rather than deepening the legacy parser unless required for compatibility.
 
-- Vendor / Payee
-- Amount
-- Due
-- Clinic / Location
-- Category
-- Description
-- Recurring: yes/no
+## 6. Seeded recurring/payable context
 
-**Current missing piece:** Google Workspace/Gmail routing from `hms@healtho2.com` to the Netlify email endpoint has not yet been connected. Until that bridge is completed, emailed items will not automatically appear in the app.
+The legacy list was built mainly from May/July HMS expense activity plus August planning.
 
-This is the highest-priority unfinished feature unless the user gives a different priority.
-
-## 6. Current source history and seeded payables
-
-The recurring list was built mainly from May and July HMS expense activity, plus August planning items. Last-payment history is best-effort and should be updated as newer actual bank/accounting data becomes available.
-
-Major seeded groups include:
-
-### Payroll / benefits
-- ADP Client Trust - payroll funding
-- ADP TotalSource - payroll/HR services
-- ADP 401(k)
-- ADP/Paychex payroll processing fees
-
-### Billing
+Major recurring groups include:
+- ADP Client Trust / TotalSource / 401(k) / processing fees
 - TMS Billings
-
-### Rent / occupancy
-- Tenant Planet / AppFolio - Chula rent
-- Madras rent - planned $5,000/month
-
-### CAPEX / equipment
-- Madras equipment payment - planned $5,000; flagged for review because recurring status should be confirmed
-- NerdzToo - invoice-driven CAPEX/IT; do not treat as fixed autopay
-
-### Medical gas / clinic operations
-- Matheson / NSM Matheson
-- Salinas cleaning - Angela
-- Chula cleaning/laundry
-- Laguna cleaning/laundry
-- Medical / clinic supplies - invoice-driven, variable
-
-### Marketing
-- Laguna marketing - planned $1,250/month
-- Monterey marketing - planned $1,500/month
+- Chula rent / Tenant Planet-AppFolio
+- Madras rent
+- Madras equipment payment (review/CAPEX)
+- Matheson medical gas
+- Salinas, Chula, Laguna cleaning/laundry
+- Laguna / Monterey marketing
 - Google Ads
+- Hanover / Next / PIA-PC insurance
+- RingCentral / Starlink / eFax / Comcast / Wyerd review
+- Google Workspace / Digits / OpenAI / WoundReference / Composer / Rocket Money / GoDaddy / Office Ally
+- SDG&E
+- invoice-driven medical supplies
+- NerdzToo CAPEX/IT
 
-### Insurance
-- Hanover Insurance
-- Next Insurance - general liability
-- Next Insurance - professional liability
-- Next Insurance - property
-- PIA-PC insurance
-
-### Telecom / internet
-- RingCentral
-- Starlink
-- CCSI eFax
-- Comcast / Xfinity
-- Wyerd Fiber - verify still active
-
-### Software / subscriptions
-- Google Workspace
-- Digits Financial
-- OpenAI / ChatGPT subscription - verify active account count
-- WoundReference
-- Composer
-- Rocket Money - review whether still needed
-- GoDaddy
-- Office Ally
-
-### Utilities
-- SD Gas & Electric - latest exact transaction history should be refreshed when newer source data is available
-
-### Separate monthly allocations / transfers
-These are intentionally separated from vendor AP:
-
-- Bonita - operating expense reimbursement
-- Bonita - 50% profit distribution
+Separate allocation/transfer items include:
+- Bonita operating-expense reimbursement
+- Bonita 50% profit distribution
 - Salinas share
 - Salinas rent
 - Chula rent allocation
 
-These amounts are not necessarily fixed and should follow the applicable monthly P&L/allocation logic.
+Keep vendor AP separate from distributions/intercompany transfers.
 
-## 7. Relevant July P&L figures for allocation context
+## 7. July allocation context retained for migration reference
 
-The July P&L was updated to:
-
+July P&L figures used by the legacy allocation list:
 - Gross receipts: **$271,620.67**
 - Operating expenses: **$65,836.21**
 - Salinas share: **$9,763.50**
@@ -176,50 +139,51 @@ The July P&L was updated to:
 - Bonita operating-expense reimbursement: **$65,836.21**
 - Total Bonita transfer: **$150,826.69**
 
-Important rule: **Bonita transfer = operating-expense reimbursement + Bonita profit share only.** CAPEX, Salinas share, Salinas rent, and Chula rent are not part of the operating-expense reimbursement.
+Rule: **Bonita transfer = operating-expense reimbursement + Bonita profit share only.** CAPEX, Salinas share, Salinas rent, and Chula rent are not part of the operating-expense reimbursement.
 
-NerdzToo CAPEX added separately: **$5,611.67** from invoices 1911, 1912, 1920, and 1921. It is tracked in #6002 and is not part of the Bonita transfer.
+NerdzToo CAPEX reference: **$5,611.67** from invoices 1911, 1912, 1920, 1921; separate from Bonita transfer.
 
-## 8. August planning additions relevant to payables
+## 8. August planning additions retained for migration reference
 
-Using July as the planning baseline, August added:
-
-- Madras rent: **$5,000**
-- Madras equipment: **$5,000**
+- Madras rent: **$5,000** operating expense
+- Madras equipment: **$5,000** CAPEX
 - Laguna marketing: **$1,250**
 - Laguna materials: **$400**
 - Monterey marketing: **$1,500**
 
-Madras rent and equipment were requested as an explicit Madras line item, with rent treated as operating expense and equipment treated as CAPEX.
+## 9. Deployment hygiene
 
-## 9. Operating principles for future development
+`package.json` is now pinned rather than using npm `latest` tags:
+- `@netlify/blobs` 11.0.3
+- `@netlify/edge-functions` 4.0.0
+- `@netlify/functions` 6.0.0
+
+A generated package lock is still desirable from an npm-capable build environment. Do not hand-author it.
+
+## 10. Operating rules
 
 1. Keep the workflow simple enough to use on the 3rd of each month.
-2. User approval should be one click/checkbox per item where practical.
-3. Show expected amount, actual/approval amount, last payment, source, and exception status.
-4. Variable or invoice-driven items should require review rather than blind preapproval.
-5. Fixed, low-risk recurring items may eventually be pre-populated, but actual payment should not be initiated without explicit user direction.
-6. Keep vendor AP separate from distributions/intercompany transfers.
-7. Preserve source descriptions and payment history so each line can be audited.
-8. Make it easy to add/disable/edit recurring items without editing source code.
-9. Avoid unnecessary authentication friction.
-10. Test/QC changes before telling the user a URL works.
-11. Do not overwrite unrelated HMS dashboard projects or routes.
+2. Preserve source descriptions and payment history/evidence.
+3. Variable/invoice-driven items require review.
+4. Vendor AP remains separate from intercompany distributions/transfers.
+5. Do not infer payment from approval.
+6. Do not infer accounting posting from discovery/approval.
+7. Do not disturb unrelated HMS dashboard routes.
+8. Test/QC before changing authority or telling the user a cutover succeeded.
+9. Keep the legacy Blob app available until Postgres parity and rollback readiness are proven.
 
-## 10. Recommended next steps
+## 11. Recommended next actions
 
-Priority order unless the user changes it:
+Priority order:
+1. **Enroll the first intended Finance admin browser and prove Blob -> Postgres parity.**
+2. Resolve migration differences until counts/keys/amounts/kinds/authorization state agree.
+3. Controlled Postgres authority cutover only after parity + rollback snapshot/reference.
+4. Connect `hms@healtho2.com` / Gmail bill discovery into `hms-finance-intake` with stable source IDs and deduplication.
+5. Add current bank/accounting imports and normalized payment history.
+6. Complete revenue ingestion/posting so the new P&L becomes complete.
+7. Add split-payable semantics before permitting partial authorizations in the new model.
+8. Real payment execution remains a later explicit project; current Finance adapters do not move money.
 
-1. **Connect `hms@healtho2.com` email intake** to the existing `payables-email` endpoint using the simplest reliable Google Workspace/Gmail mail-to-webhook bridge.
-2. Add a clean **edit payable** control in the UI for payee/category/clinic/default amount/active status.
-3. Add a **payment history** view so last payment is derived from history rather than only seeded fields.
-4. Add an import/reconciliation flow for new bank CSV/accounting data to refresh last-payment dates and amounts.
-5. Add a monthly **approval summary/export** showing approved, held, and exception items.
-6. Consider reminder/automation for the **3rd of each month** after the checklist itself is stable.
-7. Only after approval workflow is reliable, evaluate actual payment initiation/integration. Do not automatically send money merely because an item is checked unless the user explicitly authorizes that workflow.
+## 12. New-chat starter
 
-## 11. New-chat starter instruction
-
-Recommended prompt for a new chat:
-
-> Continue development of HMS Monthly Payables. Before doing anything, read `payables/CURRENT_STATE.md` from branch `master` of the private GitHub repo `pacifichyperbarics/hms-dashboard`. Treat that file as authoritative over prior chat history. Verify only what is needed for the next action, then continue from its current priority list. Update `CURRENT_STATE.md` whenever material state changes. Keep the app low-friction, test/QC changes, and do not disturb unrelated HMS dashboard routes.
+> Continue development of HMS Monthly Payables / HMS Finance. First read `payables/CURRENT_STATE.md` from `master` of `pacifichyperbarics/hms-dashboard`, then read `hms-ai/FINANCE_CURRENT_STATE.md` from branch `hms-finance-v1` of private repo `pacifichyperbarics/hms-clinic-ops-dashboard`. Treat the private Finance handoff as authoritative for architecture and the public Payables handoff as authoritative for the still-live legacy Blob app. Do not cut over `/payables/` until parity is explicitly proven. Keep access low-friction, test/QC changes, and update the relevant handoff whenever material state changes.
