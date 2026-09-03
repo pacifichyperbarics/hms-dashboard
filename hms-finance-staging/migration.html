@@ -6,7 +6,7 @@
 <title>HMS Finance Migration Gate</title>
 <link rel="stylesheet" href="./app.css">
 <style>
-.gate{max-width:1050px;margin:0 auto}.gate-status{font-size:22px;font-weight:800;margin:5px 0}.gate-status.good{color:#26734d}.gate-status.warn{color:#946200}.gate-status.bad{color:#a23b36}.authority{border-left:5px solid #946200;background:#fff6dc;padding:14px 16px;border-radius:8px;margin:14px 0}.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{border:1px solid #d9e0e7;border-radius:10px;padding:12px;background:#fff}.metric span{display:block;color:#68737d;font-size:11px;font-weight:800;text-transform:uppercase}.metric strong{font-size:24px}.checks{display:grid;grid-template-columns:1fr 1fr;gap:12px}.check{padding:11px;border:1px solid #d9e0e7;border-radius:8px;background:#fff}.check strong{display:block;margin-bottom:3px}.toplinks{display:flex;gap:8px;flex-wrap:wrap}.toplinks a{text-decoration:none}.login{max-width:480px;margin:45px auto}@media(max-width:720px){.metric-grid,.checks{grid-template-columns:1fr 1fr}}@media(max-width:480px){.metric-grid,.checks{grid-template-columns:1fr}}
+.gate{max-width:1050px;margin:0 auto}.gate-status{font-size:22px;font-weight:800;margin:5px 0}.gate-status.good{color:#26734d}.gate-status.warn{color:#946200}.gate-status.bad{color:#a23b36}.authority{border-left:5px solid #946200;background:#fff6dc;padding:14px 16px;border-radius:8px;margin:14px 0}.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{border:1px solid #d9e0e7;border-radius:10px;padding:12px;background:#fff}.metric span{display:block;color:#68737d;font-size:11px;font-weight:800;text-transform:uppercase}.metric strong{font-size:24px}.checks{display:grid;grid-template-columns:1fr 1fr;gap:12px}.check{padding:11px;border:1px solid #d9e0e7;border-radius:8px;background:#fff}.check strong{display:block;margin-bottom:3px}.toplinks{display:flex;gap:8px;flex-wrap:wrap}.toplinks a{text-decoration:none}.login{max-width:480px;margin:45px auto}.month-tools{display:flex;align-items:end;gap:8px;flex-wrap:wrap;margin-top:12px}.month-tools label{font-size:11px;font-weight:800;color:#68737d;text-transform:uppercase}.month-tools input{display:block;margin-top:4px;min-height:38px;border:1px solid #c8d2dc;border-radius:8px;padding:7px 9px;background:#fff;font:inherit}.source-months{margin-top:8px;color:#68737d;font-size:12px}@media(max-width:720px){.metric-grid,.checks{grid-template-columns:1fr 1fr}}@media(max-width:480px){.metric-grid,.checks{grid-template-columns:1fr}.month-tools{display:grid;grid-template-columns:1fr}.month-tools input,.month-tools .btn{width:100%}}
 </style>
 </head>
 <body>
@@ -23,17 +23,22 @@
   </section>
 
   <div id="workspace" hidden>
-    <div class="authority"><strong>Current authority: Legacy Payables / Netlify Blob.</strong><br>This screen can copy and compare data. It does not switch authority, delete the Blob, or initiate any payment.</div>
+    <div class="authority"><strong>Current authority: Legacy Payables / Netlify Blob.</strong><br>This screen can initialize a monthly legacy work area, copy it to the Postgres shadow, and compare the result. It does not switch authority, delete the Blob, or initiate any payment.</div>
 
     <section class="panel">
       <div class="section-head"><div><h2>Cutover gate</h2><div class="muted" id="deviceState"></div></div><div class="actions"><button class="btn" id="refresh" type="button">Refresh status</button><button class="btn primary" id="runSync" type="button">Run parity sync</button></div></div>
       <div id="gateStatus" class="gate-status warn">Not yet verified</div>
       <div id="statusDetail" class="status">Loading migration status…</div>
+      <div class="month-tools" id="monthTools">
+        <label for="sourceMonth">Legacy month<input id="sourceMonth" type="month"></label>
+        <button class="btn" id="initializeMonth" type="button">Initialize month</button>
+      </div>
+      <div class="source-months" id="sourceMonths">Persisted months: loading…</div>
     </section>
 
     <h2>Legacy source</h2>
     <div class="metric-grid">
-      <div class="metric"><span>Recurring items</span><strong id="sourceItems">—</strong></div>
+      <div class="metric"><span>Payable definitions</span><strong id="sourceItems">—</strong></div>
       <div class="metric"><span>Monthly runs</span><strong id="sourceRuns">—</strong></div>
       <div class="metric"><span>Payable instances</span><strong id="sourceInstances">—</strong></div>
       <div class="metric"><span>Source updated</span><strong id="sourceUpdated" style="font-size:14px">—</strong></div>
