@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HMS Device Access Test</title>
+<style>
+[hidden]{display:none!important}*{box-sizing:border-box}body{margin:0;font:14px/1.45 Arial,Helvetica,sans-serif;background:#f5f7f9;color:#17212b}.shell{max-width:980px;margin:0 auto;padding:28px 18px 50px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:18px}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:#66717c}h1{margin:4px 0;font-size:30px;color:#173f67}.muted,.status{color:#66717c}.panel{background:#fff;border:1px solid #d8e0e8;border-radius:12px;padding:16px;margin-top:14px}.login label{display:block;font-weight:700;margin-bottom:6px}.row{display:flex;gap:8px;align-items:center}.row input{flex:1;min-width:0;padding:10px;border:1px solid #c8d2dc;border-radius:8px;font:inherit}.btn{border:1px solid #c8d2dc;background:#fff;border-radius:8px;padding:9px 12px;font:inherit;font-weight:700;cursor:pointer}.btn.primary{background:#173f67;color:#fff;border-color:#173f67}.btn:disabled{opacity:.55}.tablewrap{overflow:auto;margin-top:12px}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:9px;border-top:1px solid #edf0f3;text-align:left;vertical-align:middle}th{font-size:11px;text-transform:uppercase;color:#66717c}.device-name{width:190px;padding:7px;border:1px solid #c8d2dc;border-radius:7px}.pill{display:inline-block;padding:3px 7px;border-radius:999px;background:#edf2f6;font-size:11px;font-weight:700}.pill.admin{background:#e9f5ee;color:#26734d}.pill.blocked{background:#fff0ef;color:#a23b36}.actions{display:flex;gap:5px;flex-wrap:wrap}.notice{padding:10px 12px;background:#eef4f8;border-left:4px solid #2d6da3;margin-top:12px}.top-actions{display:flex;gap:8px}.small{font-size:12px}@media(max-width:650px){.top{display:block}.top-actions{margin-top:10px}.row{display:block}.row input,.row button{width:100%;margin-top:7px}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <div class="top">
+    <div><div class="eyebrow">Hyperbaric Management Services</div><h1>Device Access Test</h1><div class="muted">One password on first use; saved browser access afterward.</div></div>
+    <div class="top-actions"><button class="btn" id="logout" type="button" hidden>Forget access</button></div>
+  </div>
+  <section class="panel login" id="loginPanel">
+    <h2>HMS access</h2>
+    <p>Enter the shared HMS password once on this browser.</p>
+    <form id="loginForm">
+      <label for="password">Password</label>
+      <div class="row"><input id="password" type="password" autocomplete="current-password" required><button class="btn primary" type="submit">Continue</button></div>
+    </form>
+    <p class="status" id="loginStatus" aria-live="polite"></p>
+  </section>
+  <section class="panel" id="accessPanel" hidden>
+    <h2>Access working</h2>
+    <div id="identity"></div>
+    <div class="notice small">This page is isolated test infrastructure. Existing HMS pages have not been switched to this login yet.</div>
+  </section>
+  <section class="panel" id="adminPanel" hidden>
+    <div class="row" style="justify-content:space-between"><div><h2 style="margin:0">Authorized browsers</h2><div class="muted small">Rename, allow/block, or designate admin browsers.</div></div><button class="btn" id="refresh" type="button">Refresh</button></div>
+    <div class="tablewrap"><table><thead><tr><th>Name</th><th>Platform</th><th>Last seen</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div>
+    <p class="status" id="adminStatus" aria-live="polite"></p>
+  </section>
+</main>
+<script>
+(() => {
+  const ENDPOINT='https://sojtoyybfolcxezkppxc.supabase.co/functions/v1/hms-device-auth';
+  const TOKEN_KEY='hms.device.token.v1', DEVICE_KEY='hms.device.id.v1';
+  const $=id=>document.getElementById(id);
+  const loginPanel=$('loginPanel'),accessPanel=$('accessPanel'),adminPanel=$('adminPanel'),loginStatus=$('loginStatus'),identity=$('identity'),rows=$('rows'),adminStatus=$('adminStatus'),logout=$('logout');
+  const token=()=>{try{return localStorage.getItem(TOKEN_KEY)||''}catch{return''}};
+  const deviceId=()=>{try{return localStorage.getItem(DEVICE_KEY)||''}catch{return''}};
+  const clear=()=>{try{localStorage.removeItem(TOKEN_KEY)}catch{}};
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt=v=>{if(!v)return'Never';const d=new Date(v);return Number.isNaN(d.getTime())?'Unknown':d.toLocaleString()};
+  async function api(method,body){const headers={'Content-Type':'application/json'};if(token())headers['x-hms-device-token']=token();const r=await fetch(ENDPOINT,{method,headers,body:body?JSON.stringify(body):undefined});const data=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(data.error||'request_failed');e.code=data.error;e.status=r.status;throw e}return data}
+  async function validate(){if(!token())return null;try{return await api('GET')}catch(e){if(e.status===401||e.status===403)clear();return null}}
+  async function loadDevices(){adminStatus.textContent='Loading…';try{const r=await api('POST',{action:'list-devices'});rows.innerHTML=(r.devices||[]).map(d=>`<tr data-id="${esc(d.id)}" data-allowed="${d.allowed?'1':'0'}" data-admin="${d.is_admin?'1':'0'}"><td><input class="device-name" maxlength="120" value="${esc(d.display_name||'')}" placeholder="Name browser"></td><td>${esc(d.platform||'Unknown')}</td><td>${esc(fmt(d.last_seen_at))}</td><td><span class="pill ${d.is_admin?'admin':''}">${d.is_admin?'Admin':'Standard'}</span></td><td><span class="pill ${d.allowed?'':'blocked'}">${d.allowed?'Allowed':'Blocked'}</span></td><td><div class="actions"><button class="btn save" type="button">Save name</button><button class="btn toggle" type="button">${d.allowed?'Block':'Allow'}</button><button class="btn admin" type="button">${d.is_admin?'Remove admin':'Make admin'}</button></div></td></tr>`).join('');adminStatus.textContent=`${(r.devices||[]).length} browser${(r.devices||[]).length===1?'':'s'}.`}catch(e){adminStatus.textContent=e.code==='admin_device_required'?'This browser is not an admin device.':'Could not load browsers.'}}
+  async function show(result){const d=result.device;loginPanel.hidden=true;accessPanel.hidden=false;logout.hidden=false;identity.innerHTML=`<strong>${esc(d.displayName||'This browser')}</strong> · ${d.isAdmin?'Admin device':'Standard device'} · access saved`;adminPanel.hidden=!d.isAdmin;if(d.isAdmin)await loadDevices()}
+  $('loginForm').addEventListener('submit',async e=>{e.preventDefault();const btn=e.target.querySelector('button');btn.disabled=true;loginStatus.textContent='Checking…';try{const r=await api('POST',{action:'login',password:$('password').value,deviceId:deviceId()||null,displayName:'',metadata:{userAgent:navigator.userAgent||'',platform:navigator.userAgentData?.platform||navigator.platform||'',language:navigator.language||'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||''}});localStorage.setItem(TOKEN_KEY,r.token);localStorage.setItem(DEVICE_KEY,r.device.id);$('password').value='';loginStatus.textContent='';await show(r)}catch(err){loginStatus.textContent=err.code==='invalid_password'?'Incorrect password.':err.code==='device_blocked'?'This browser has been blocked.':'Access unavailable.'}finally{btn.disabled=false}});
+  rows.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;const tr=b.closest('tr');if(!tr)return;b.disabled=true;const fields={deviceId:tr.dataset.id};if(b.classList.contains('save'))fields.displayName=tr.querySelector('.device-name').value.trim();if(b.classList.contains('toggle'))fields.allowed=tr.dataset.allowed!=='1';if(b.classList.contains('admin'))fields.isAdmin=tr.dataset.admin!=='1';try{await api('POST',{action:'update-device',...fields});await loadDevices()}catch(err){adminStatus.textContent=err.code==='cannot_block_current_device'?'You cannot block the browser you are using.':err.code==='cannot_remove_current_admin'?'You cannot remove admin from the browser you are using.':'Could not update browser.'}finally{b.disabled=false}});
+  $('refresh').addEventListener('click',loadDevices);
+  logout.addEventListener('click',async()=>{try{await api('POST',{action:'logout'})}catch{}clear();location.reload()});
+  validate().then(r=>{if(r?.authenticated)show(r);else loginPanel.hidden=false}).catch(()=>{loginStatus.textContent='Access service unavailable.'});
+})();
+</script>
+</body>
+</html>
