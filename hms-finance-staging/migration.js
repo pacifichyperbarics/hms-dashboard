@@ -26,10 +26,19 @@
     set('sourceItems',source.items??0);set('sourceRuns',source.runs??0);set('sourceInstances',source.instances??0);set('sourceUpdated',source.updatedAt?fmtDate(source.updatedAt):'Unknown');
     set('dbVendors',db.vendors??0);set('dbRules',db.recurringRules??0);set('dbPayables',db.payables??0);set('dbAuth',db.activeAuthorizations??0);
     set('parityCounts',parity.expected==null?'Not run':`${parity.expected} expected / ${parity.actual} actual`);
-    set('parityMissing',parity.missing??'—');set('parityExtra',parity.extra??'—');set('parityAmount',parity.amountMismatch??'—');set('parityStatus',parity.statusMismatch??'—');set('lastSuccess',fmtDate(db.sync?.last_success_at));
+    set('parityTotal',parity.mismatchTotal??'—');
+    set('parityRows',parity.expected==null?'—':`${parity.missing||0} missing / ${parity.extra||0} extra`);
+    set('parityMoneyStatus',parity.expected==null?'—':`${parity.amountMismatch||0} amount / ${parity.statusMismatch||0} status`);
+    const classTotal=(parity.kindMismatch||0)+(parity.accountMismatch||0)+(parity.clinicMismatch||0)+(parity.recurringRuleMismatch||0)+(parity.reviewFlagMismatch||0);
+    set('parityClassification',parity.expected==null?'—':`${classTotal} total · kind ${parity.kindMismatch||0}, clinic ${parity.clinicMismatch||0}, account ${parity.accountMismatch||0}, rule ${parity.recurringRuleMismatch||0}, review ${parity.reviewFlagMismatch||0}`);
+    const approvalTotal=(parity.authorizationMissing||0)+(parity.authorizationUnexpected||0)+(parity.authorizationAmountMismatch||0);
+    set('parityApproval',parity.expected==null?'—':`${approvalTotal} total · missing ${parity.authorizationMissing||0}, extra ${parity.authorizationUnexpected||0}, amount ${parity.authorizationAmountMismatch||0}`);
+    const vendors=parity.vendors||{},rules=parity.recurringRules||{};
+    set('parityMasterData',parity.expected==null?'—':`vendors ${vendors.expected??0}/${vendors.actual??0} (−${vendors.missing||0}/+${vendors.extra||0}); rules ${rules.expected??0}/${rules.actual??0} (−${rules.missing||0}/+${rules.extra||0})`);
+    set('lastSuccess',fmtDate(db.sync?.last_success_at));
     const gate=$('gateStatus');
     if(syncLocked){gate.textContent='Parity sync locked after finance activity';gate.className='gate-status warn';set('statusDetail',`${db.operationalLegacyCount||0} migrated legacy payable(s) have entered payment/reconciliation/posting state. The mapper is locked to prevent status regression.`);}
-    else if(db.passed){gate.textContent='Parity passed — not cut over';gate.className='gate-status good';set('statusDetail','The current legacy source and Postgres shadow match on migration parity checks. Legacy Payables is still the authority until a separate controlled cutover.');}
+    else if(db.passed){gate.textContent='Parity passed — not cut over';gate.className='gate-status good';set('statusDetail','Finance-grade parity passed: records, amounts, statuses, coding, location/rule linkage, review flags, master data, and approval state agree. Legacy Payables is still the authority until a separate controlled cutover.');}
     else if(db.sync){gate.textContent=db.sync.status==='partial'?'Parity mismatch':'Parity not passed';gate.className='gate-status bad';set('statusDetail',db.sync.error_text||'Review the mismatch counts below and rerun after correction.');}
     else{gate.textContent='Parity not yet run';gate.className='gate-status warn';set('statusDetail','No successful legacy Payables parity run has been recorded yet.');}
   }
@@ -60,13 +69,11 @@
 
   $('refresh').addEventListener('click',load);
   $('runSync').addEventListener('click',async()=>{
-    const button=$('runSync');button.disabled=true;set('gateStatus','Running parity sync…');$('gateStatus').className='gate-status warn';set('statusDetail','Copying the legacy Blob state into the Postgres shadow and comparing records. No authority change or payment occurs.');
+    const button=$('runSync');button.disabled=true;set('gateStatus','Running finance-grade parity sync…');$('gateStatus').className='gate-status warn';set('statusDetail','Copying the legacy Blob state into the Postgres shadow and checking records, coding, location, rules, review flags, and approval state. No authority change or payment occurs.');
     try{await syncRequest('POST');await load();}
     catch(error){set('gateStatus',error.code==='migration_locked_after_finance_activity'?'Parity sync locked':'Parity sync failed');$('gateStatus').className='gate-status bad';set('statusDetail',error.detail||error.code||'The migration sync failed. Legacy Payables remains authoritative.');}
     finally{button.disabled=!isAdmin||syncLocked;}
   });
 
-  API.validate().then(device=>{
-    if(device)showWorkspace(device);else $('loginPanel').hidden=false;
-  }).catch(()=>{$('loginPanel').hidden=false;set('loginStatus','Access unavailable.');});
+  API.validate().then(device=>{if(device)showWorkspace(device);else $('loginPanel').hidden=false;}).catch(()=>{$('loginPanel').hidden=false;set('loginStatus','Access unavailable.');});
 })();
