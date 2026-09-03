@@ -23,18 +23,9 @@ function authorized(req) {
   return auth === `Bearer ${expected}` || header === expected;
 }
 
-function disposableAuthorized(req) {
-  const expected = env('HMS_PAYABLES_SYNC_ONCE');
-  if (!expected) return false;
-  const url = new URL(req.url);
-  return req.method === 'GET' && url.searchParams.get('once') === expected;
-}
-
 export default async (req) => {
-  if (!authorized(req) && !disposableAuthorized(req)) {
-    if (req.method !== 'POST' && req.method !== 'GET') return json({ ok: false, error: 'Method not allowed' }, 405);
-    return json({ ok: false, error: 'Unauthorized' }, 401);
-  }
+  if (req.method !== 'POST') return json({ ok: false, error: 'Method not allowed' }, 405);
+  if (!authorized(req)) return json({ ok: false, error: 'Unauthorized' }, 401);
 
   try {
     const store = getStore(STORE_NAME, { consistency: 'strong' });
