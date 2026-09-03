@@ -36,7 +36,6 @@ async function adminDeviceAuthorized(req) {
   if (!token) return false;
   const config = supabaseConfig();
   if (!config) return false;
-
   const hash = createHash('sha256').update(token).digest('hex');
   const query = new URLSearchParams({
     select: 'id,device_id,expires_at,revoked_at,hms_devices!inner(id,allowed,is_admin)',
@@ -60,13 +59,7 @@ async function sourceStatus() {
     const recurring = (state.items || []).filter((item) => item.active !== false);
     instances += recurring.length + (run?.oneTimeItems || []).length;
   }
-  return {
-    readable: true,
-    items: state.items.length,
-    runs: Object.keys(state.runs || {}).length,
-    instances,
-    updatedAt: state.updatedAt || null,
-  };
+  return { readable: true, items: state.items.length, runs: Object.keys(state.runs || {}).length, instances, updatedAt: state.updatedAt || null };
 }
 
 async function databaseStatus() {
@@ -76,17 +69,21 @@ async function databaseStatus() {
     rest(config, 'hms_sync_state?select=connector,source_account,last_source_timestamp,last_attempt_at,last_success_at,status,error_text,stats&connector=eq.payables_blob&source_account=eq.hms-payables%2Fstate-v1&limit=1'),
     rest(config, 'hms_finance_vendors?select=id&vendor_key=like.legacy-payables%3A*'),
     rest(config, 'hms_finance_recurring_rules?select=id&external_key=like.legacy-payables-rule%3A*'),
-    rest(config, 'hms_finance_payables?select=id&source_type=eq.legacy_payables_blob'),
+    rest(config, 'hms_finance_payables?select=id,status&source_type=eq.legacy_payables_blob'),
     rest(config, 'hms_finance_authorizations?select=id,metadata&status=eq.authorized'),
   ]);
   const sync = syncRows?.[0] || null;
   const parity = sync?.stats?.parity || null;
+  const protectedStatuses = new Set(['payment_pending','paid','reconciled','posted','cancelled']);
+  const operationalLegacyCount = payables.filter((row) => protectedStatuses.has(row.status)).length;
   return {
     configured: true,
     vendors: vendors.length,
     recurringRules: rules.length,
     payables: payables.length,
     activeAuthorizations: authorizations.filter((row) => row?.metadata?.shadow_sync === true).length,
+    operationalLegacyCount,
+    syncLocked: operationalLegacyCount > 0,
     sync,
     parity,
     passed: Boolean(sync?.status === 'success' && parity?.matched === true),
@@ -95,7 +92,6 @@ async function databaseStatus() {
 
 export default async (req) => {
   if (!['GET', 'POST'].includes(req.method)) return json({ ok: false, error: 'Method not allowed' }, 405);
-
   let authorized = false;
   try { authorized = await adminDeviceAuthorized(req); } catch { authorized = false; }
   if (!authorized) return json({ ok: false, error: 'Admin device required' }, 403);
@@ -104,6 +100,16 @@ export default async (req) => {
     if (req.method === 'GET') {
       const [source, database] = await Promise.all([sourceStatus(), databaseStatus()]);
       return json({ ok: true, authority: database.passed ? 'parity_passed_not_cut_over' : 'legacy_blob', source, database });
+    }
+
+    const before = await databaseStatus();
+    if (before.syncLocked) {
+      return json({
+        ok: false,
+        error: 'migration_locked_after_finance_activity',
+        detail: `${before.operationalLegacyCount} migrated legacy payable(s) have entered payment/reconciliation/posting state. Parity sync is locked to prevent status regression.`,
+        database: before,
+      }, 409);
     }
 
     const store = getStore(STORE_NAME, { consistency: 'strong' });
