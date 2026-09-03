@@ -6,7 +6,7 @@
 <title>HMS Finance Migration Gate</title>
 <link rel="stylesheet" href="./app.css">
 <style>
-.gate{max-width:1050px;margin:0 auto}.gate-status{font-size:22px;font-weight:800;margin:5px 0}.gate-status.good{color:#26734d}.gate-status.warn{color:#946200}.gate-status.bad{color:#a23b36}.authority{border-left:5px solid #946200;background:#fff6dc;padding:14px 16px;border-radius:8px;margin:14px 0}.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{border:1px solid #d9e0e7;border-radius:10px;padding:12px;background:#fff}.metric span{display:block;color:#68737d;font-size:11px;font-weight:800;text-transform:uppercase}.metric strong{font-size:24px}.checks{display:grid;grid-template-columns:1fr 1fr;gap:12px}.check{padding:11px;border:1px solid #d9e0e7;border-radius:8px;background:#fff}.check strong{display:block;margin-bottom:3px}.toplinks{display:flex;gap:8px;flex-wrap:wrap}.toplinks a{text-decoration:none}.login{max-width:480px;margin:45px auto}.month-tools{display:flex;align-items:end;gap:8px;flex-wrap:wrap;margin-top:12px}.month-tools label{font-size:11px;font-weight:800;color:#68737d;text-transform:uppercase}.month-tools input{display:block;margin-top:4px;min-height:38px;border:1px solid #c8d2dc;border-radius:8px;padding:7px 9px;background:#fff;font:inherit}.source-months{margin-top:8px;color:#68737d;font-size:12px}@media(max-width:720px){.metric-grid,.checks{grid-template-columns:1fr 1fr}}@media(max-width:480px){.metric-grid,.checks{grid-template-columns:1fr}.month-tools{display:grid;grid-template-columns:1fr}.month-tools input,.month-tools .btn{width:100%}}
+.gate{max-width:1050px;margin:0 auto}.gate-status{font-size:22px;font-weight:800;margin:5px 0}.gate-status.good{color:#26734d}.gate-status.warn{color:#946200}.gate-status.bad{color:#a23b36}.authority{border-left:5px solid #946200;background:#fff6dc;padding:14px 16px;border-radius:8px;margin:14px 0}.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{border:1px solid #d9e0e7;border-radius:10px;padding:12px;background:#fff}.metric span{display:block;color:#68737d;font-size:11px;font-weight:800;text-transform:uppercase}.metric strong{font-size:24px}.checks{display:grid;grid-template-columns:1fr 1fr;gap:12px}.check{padding:11px;border:1px solid #d9e0e7;border-radius:8px;background:#fff}.check strong{display:block;margin-bottom:3px}.toplinks{display:flex;gap:8px;flex-wrap:wrap}.toplinks a{text-decoration:none}.login{max-width:480px;margin:45px auto}.month-tools{display:flex;align-items:end;gap:8px;flex-wrap:wrap;margin-top:12px}.month-tools label{font-size:11px;font-weight:800;color:#68737d;text-transform:uppercase}.month-tools input{display:block;margin-top:4px;min-height:38px;border:1px solid #c8d2dc;border-radius:8px;padding:7px 9px;background:#fff;font:inherit}.source-months{margin-top:8px;color:#68737d;font-size:12px}.spaced{margin-top:14px}@media(max-width:720px){.metric-grid,.checks{grid-template-columns:1fr 1fr}}@media(max-width:480px){.metric-grid,.checks{grid-template-columns:1fr}.month-tools{display:grid;grid-template-columns:1fr}.month-tools input,.month-tools .btn{width:100%}}
 </style>
 </head>
 <body>
@@ -23,7 +23,7 @@
   </section>
 
   <div id="workspace" hidden>
-    <div class="authority"><strong>Current authority: Legacy Payables / Netlify Blob.</strong><br>This screen can initialize a monthly legacy work area, copy it to the Postgres shadow, and compare the result. It does not switch authority, delete the Blob, or initiate any payment.</div>
+    <div class="authority"><strong>Current authority: Legacy Payables / Netlify Blob.</strong><br>This screen can initialize a monthly legacy work area, run rollback-safe system QC, copy the selected legacy months to the Postgres shadow, and compare the result. It does not switch authority, delete the Blob, or initiate any payment.</div>
 
     <section class="panel">
       <div class="section-head"><div><h2>Cutover gate</h2><div class="muted" id="deviceState"></div></div><div class="actions"><button class="btn" id="refresh" type="button">Refresh status</button><button class="btn primary" id="runSync" type="button">Run parity sync</button></div></div>
@@ -34,6 +34,18 @@
         <button class="btn" id="initializeMonth" type="button">Initialize month</button>
       </div>
       <div class="source-months" id="sourceMonths">Persisted months: loading…</div>
+    </section>
+
+    <section class="panel spaced">
+      <div class="section-head"><div><h2>Rollback-safe system QC</h2><div class="muted">Tests accounting signs, promotion, authorization, payment recording, reconciliation, and ledger immutability. Test data is rolled back.</div></div><button class="btn" id="runQc" type="button">Run system QC</button></div>
+      <div id="qcStatus" class="gate-status warn">Not yet run from this interface</div>
+      <div id="qcDetail" class="status">Loading the latest recorded result…</div>
+      <div class="checks spaced">
+        <div class="check"><strong>Core workflows</strong><span id="qcCore">—</span></div>
+        <div class="check"><strong>Posted ledger protection</strong><span id="qcLedger">—</span></div>
+        <div class="check"><strong>Rollback residue</strong><span>QC records are rolled back; only the result is audited.</span></div>
+        <div class="check"><strong>Last recorded run</strong><span id="qcLastRun">Never</span></div>
+      </div>
     </section>
 
     <h2>Legacy source</h2>
