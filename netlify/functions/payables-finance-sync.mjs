@@ -1,6 +1,9 @@
 import { getStore } from '@netlify/blobs';
 import { syncPayablesToFinance } from './lib/payables-finance-shadow.mjs';
 
+const STORE_NAME = 'hms-payables';
+const STATE_KEY = 'state-v1';
+
 function env(name) {
   try { return Netlify.env.get(name) || ''; } catch { return process.env[name] || ''; }
 }
@@ -20,9 +23,18 @@ function authorized(req) {
   return auth === `Bearer ${expected}` || header === expected;
 }
 
+function disposableAuthorized(req) {
+  const expected = env('HMS_PAYABLES_SYNC_ONCE');
+  if (!expected) return false;
+  const url = new URL(req.url);
+  return req.method === 'GET' && url.searchParams.get('once') === expected;
+}
+
 export default async (req) => {
-  if (req.method !== 'POST') return json({ ok: false, error: 'Method not allowed' }, 405);
-  if (!authorized(req)) return json({ ok: false, error: 'Unauthorized' }, 401);
+  if (!authorized(req) && !disposableAuthorized(req)) {
+    if (req.method !== 'POST' && req.method !== 'GET') return json({ ok: false, error: 'Method not allowed' }, 405);
+    return json({ ok: false, error: 'Unauthorized' }, 401);
+  }
 
   try {
     const store = getStore(STORE_NAME, { consistency: 'strong' });
@@ -35,6 +47,3 @@ export default async (req) => {
     return json({ ok: false, error: 'Payables finance sync failed' }, 500);
   }
 };
-
-const STORE_NAME = 'hms-payables';
-const STATE_KEY = 'state-v1';
