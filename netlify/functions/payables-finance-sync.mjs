@@ -170,8 +170,8 @@ function summarizeSource(state) {
 }
 
 async function sourceSnapshot() {
-  // Object-form getStore is required when selecting store-level consistency.
-  const store = getStore({ name: STORE_NAME, consistency: 'strong' });
+  // Match the exact store-opening pattern used by the live, working Payables function.
+  const store = getStore(STORE_NAME);
   const state = await withTimeout(
     store.get(STATE_KEY, { type: 'json' }),
     'legacy_blob_read',
@@ -281,15 +281,17 @@ export default async (req) => {
   let authorized = false;
   try { authorized = await adminDeviceAuthorized(req); } catch (error) {
     console.error('Payables migration authorization failed', errorMessage(error));
-    return json({ ok: false, error: 'Migration authorization check failed' }, 503);
+    return json({ ok: false, error: 'Migration authorization check failed', detail: errorMessage(error) }, 503);
   }
   if (!authorized) return json({ ok: false, error: 'Admin device required' }, 403);
 
   const config = supabaseConfig();
   try {
     if (req.method === 'GET') {
-      const status = await migrationStatus();
-      return json(status, status.ok ? 200 : 503);
+      // Status is informational. Return a readable payload even if one source is down,
+      // so the page can identify the failed component instead of hanging or showing a
+      // generic migration error.
+      return json(await migrationStatus());
     }
 
     const body = await req.json().catch(() => ({}));
