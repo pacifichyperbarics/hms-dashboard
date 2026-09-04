@@ -1,2 +1,4 @@
+/hms-payables /hms-finance-staging/index.html 200
+/hms-payables/* /hms-finance-staging/:splat 200
 /ops /index.html 200
 / /actuals.html 200
