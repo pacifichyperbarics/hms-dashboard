@@ -1,5 +1,5 @@
 import {
-  API, $, esc, formatDate, navigate, setText,
+  API, $, esc, formatDate, navigate, setText, state,
 } from './app-core.js';
 
 let gmail = {
@@ -39,7 +39,7 @@ function ensureUi() {
       <div class="section-head">
         <div>
           <h2>Email bill discovery</h2>
-          <div class="meta">Checks connected Gmail for invoices, statements, past-due notices, autopays, receipts, and changed payment instructions.</div>
+          <div class="meta">Checks connected Gmail for invoices, statements, past-due notices, automatic charges, receipts, and changed payment instructions.</div>
         </div>
         <div class="actions">
           <button class="btn" id="gmailConnect" type="button">Connect Gmail</button>
@@ -74,7 +74,7 @@ function renderConnections() {
   const container = $('gmailConnections');
   if (!container) return;
   if (!gmail.connections.length) {
-    container.innerHTML = '<div class="empty compact-empty">No Gmail account is connected.</div>';
+    container.innerHTML = '<div class="empty compact-empty">No Gmail account is connected for automatic scanning.</div>';
     return;
   }
   container.innerHTML = gmail.connections.map((connection) => `
@@ -91,6 +91,44 @@ function renderConnections() {
     </div>`).join('');
 }
 
+function decorateInboxRows() {
+  const body = $('inboxRows');
+  if (!body || !Array.isArray(state.inbox)) return;
+
+  body.querySelectorAll('tr[data-id]').forEach((row) => {
+    const item = state.inbox.find((candidate) => String(candidate.id) === String(row.dataset.id));
+    if (!item) return;
+    const actions = row.querySelector('td:last-child .actions');
+    if (!actions) return;
+
+    if (item.review_status === 'held' && !actions.querySelector('.gmail-confirm-hms')) {
+      actions.innerHTML = '';
+      const confirm = document.createElement('button');
+      confirm.className = 'smallbtn gmail-confirm-hms';
+      confirm.type = 'button';
+      confirm.textContent = 'Confirm HMS';
+      confirm.title = 'Confirm that HMS is responsible for this item, then return it to normal review.';
+      actions.appendChild(confirm);
+
+      const reject = document.createElement('button');
+      reject.className = 'smallbtn inbox-reject';
+      reject.type = 'button';
+      reject.textContent = 'Reject';
+      actions.appendChild(reject);
+    }
+
+    if (item.source_url && !actions.querySelector('.gmail-open-source')) {
+      const link = document.createElement('a');
+      link.className = 'smallbtn gmail-open-source';
+      link.href = item.source_url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = item.source_type === 'gmail' ? 'Open email' : 'Open source';
+      actions.appendChild(link);
+    }
+  });
+}
+
 function renderGmail() {
   ensureUi();
   const configuration = gmail.configuration || { configured: false, missing: [] };
@@ -98,6 +136,7 @@ function renderGmail() {
   const latest = gmail.runs[0] || null;
   const counts = gmail.evidenceCounts || {};
   const candidates = Number(counts.payment_needed || 0) + Number(counts.review || 0) + Number(counts.entity_hold || 0);
+  const hasEvidence = Number(counts.total || 0) > 0;
 
   setText('gmailCandidates', candidates);
   setText('gmailAutomatic', Number(counts.scheduled_auto || 0));
@@ -106,9 +145,13 @@ function renderGmail() {
 
   const status = $('gmailStatus');
   if (!configuration.configured) {
-    status.textContent = 'Email discovery is installed; Google connection setup is incomplete';
+    status.textContent = hasEvidence
+      ? 'Initial email review is loaded; automatic Gmail scanning needs one-time setup'
+      : 'Email discovery is installed; Google connection setup is incomplete';
     status.className = 'connection-status warn';
-    setText('gmailDetail', 'The app cannot scan Gmail until the one-time Google OAuth client is configured. Existing Payables and manual Inbox entry continue to work.');
+    setText('gmailDetail', hasEvidence
+      ? `${counts.total || 0} email records have been classified for review. Automatic hourly scanning will begin after the Google OAuth client is connected.`
+      : 'The app cannot scan Gmail until the one-time Google OAuth client is configured. Existing Payables and manual Inbox entry continue to work.');
   } else if (active) {
     status.textContent = `Connected to ${active.source_account}`;
     status.className = 'connection-status good';
@@ -131,7 +174,7 @@ function renderGmail() {
   $('gmailScan').disabled = !active;
   if ($('gmailScanInbox')) {
     $('gmailScanInbox').disabled = !active;
-    $('gmailScanInbox').title = active ? `Scan ${active.source_account}` : 'Connect Gmail in Settings first';
+    $('gmailScanInbox').title = active ? `Scan ${active.source_account}` : 'Automatic Gmail connection is not active yet';
   }
 
   renderConnections();
@@ -145,11 +188,14 @@ function renderGmail() {
       `${latest.irrelevant_skipped || 0} excluded`,
       `${latest.entity_holds || 0} entity holds`,
     ];
-    setText('gmailRunSummary', `Last scan ${completed}: ${details.join(' · ')}.`);
+    setText('gmailRunSummary', `Last automatic scan ${completed}: ${details.join(' · ')}.`);
+  } else if (hasEvidence) {
+    setText('gmailRunSummary', `Initial assisted review: ${counts.total || 0} email records retained as evidence; ${candidates} require review, ${counts.scheduled_auto || 0} appear automatic, ${counts.already_paid || 0} are already-paid evidence, and ${counts.not_payable || 0} were excluded.`);
   } else {
-    setText('gmailRunSummary', 'No email scan has been recorded yet.');
+    setText('gmailRunSummary', 'No email review has been recorded yet.');
   }
   setText('gmailTechnical', `OAuth redirect: ${configuration.redirectUri || 'not available'}. Missing setup: ${(configuration.missing || []).join(', ') || 'none'}. Stored email evidence: ${counts.total || 0}.`);
+  queueMicrotask(decorateInboxRows);
 }
 
 function callbackMessage() {
@@ -178,6 +224,7 @@ export async function loadGmail({ quiet = false } = {}) {
     };
     renderGmail();
     callbackMessage();
+    decorateInboxRows();
     return gmail;
   } catch (error) {
     const status = $('gmailStatus');
@@ -228,6 +275,35 @@ export function bindGmail() {
   if (bound) return;
   bound = true;
   ensureUi();
+
+  const inboxRows = $('inboxRows');
+  if (inboxRows) {
+    new MutationObserver(decorateInboxRows).observe(inboxRows, { childList: true, subtree: true });
+    inboxRows.addEventListener('click', async (event) => {
+      const button = event.target.closest('.gmail-confirm-hms');
+      if (!button) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const row = button.closest('tr[data-id]');
+      if (!row?.dataset.id) return;
+      const item = state.inbox.find((candidate) => String(candidate.id) === String(row.dataset.id));
+      const confirmed = window.confirm(`Confirm that HMS is responsible for ${item?.candidate_payee || 'this item'}? It will return to normal review; it will not be authorized or paid.`);
+      if (!confirmed) return;
+      button.disabled = true;
+      try {
+        await API.request(API.endpoints.intake, 'POST', {
+          action: 'resolve-hold', id: row.dataset.id,
+          note: item?.review_note || 'Entity responsibility confirmed as HMS.',
+        });
+        setText('inboxStatus', 'HMS responsibility confirmed. The item remains in review and is not authorized.');
+        $('inboxRefresh')?.click();
+        await loadGmail({ quiet: true });
+      } catch (error) {
+        setText('inboxStatus', `Hold could not be resolved: ${error.detail || error.code || 'connection error'}.`);
+        button.disabled = false;
+      }
+    }, true);
+  }
 
   $('gmailConnect')?.addEventListener('click', async () => {
     const button = $('gmailConnect');
