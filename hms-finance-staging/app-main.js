@@ -1,16 +1,20 @@
 import { $, currentMonth, navigate, setText, state, API } from './app-core.js';
 import { bindPrimary, loadCash, loadInbox, loadOverview, loadPayables } from './app-primary.js';
 import { bindSecondary, loadPayments, loadReports, loadSavings, loadSettings } from './app-secondary.js';
+import { bindGmail, loadGmail } from './app-gmail.js';
+
+const loadInboxWithGmail = async () => Promise.allSettled([loadInbox(), loadGmail({ quiet: true })]);
+const loadSettingsWithGmail = async () => Promise.allSettled([loadSettings(), loadGmail()]);
 
 const loaders = {
   overview: loadOverview,
-  inbox: loadInbox,
+  inbox: loadInboxWithGmail,
   payables: loadPayables,
   cash: loadCash,
   payments: loadPayments,
   savings: loadSavings,
   reports: loadReports,
-  settings: loadSettings,
+  settings: loadSettingsWithGmail,
 };
 
 function showWorkspace() {
@@ -72,6 +76,7 @@ async function init() {
   bindShell();
   bindPrimary();
   bindSecondary();
+  bindGmail();
   state.device = await API.validate();
   if (state.device) showWorkspace();
   else $('loginPanel').hidden = false;
