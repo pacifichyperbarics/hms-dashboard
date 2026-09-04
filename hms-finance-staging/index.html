@@ -3,84 +3,184 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HMS Finance</title>
+<title>HMS Payables</title>
 <link rel="stylesheet" href="./app.css">
 </head>
 <body>
 <main class="shell">
-  <div class="top">
-    <div><div class="eyebrow">Hyperbaric Management Services</div><h1>Finance</h1><div class="muted">Payables, cash requirements, payments, reconciliation and cost control</div></div>
-    <div class="topactions"><span id="deviceState" class="muted"></span><button class="btn" id="logout" type="button" hidden>Forget access</button></div>
-  </div>
+  <header class="top">
+    <div>
+      <div class="eyebrow">Hyperbaric Management Services</div>
+      <h1>HMS Payables</h1>
+      <div class="muted">Find bills, authorize payments, plan cash, and keep accounting current.</div>
+    </div>
+    <div class="topactions">
+      <span id="deviceState" class="muted"></span>
+      <button class="btn" id="logout" type="button" hidden>Forget access</button>
+    </div>
+  </header>
 
   <section class="panel login" id="loginPanel">
     <h2>HMS access</h2>
     <p>Enter the shared HMS password once on this browser.</p>
-    <form id="loginForm"><div class="field"><label for="password">Password</label><div class="loginrow"><input id="password" type="password" autocomplete="current-password" required><button class="btn primary" type="submit">Continue</button></div></div></form>
+    <form id="loginForm">
+      <div class="field"><label for="password">Password</label><div class="loginrow"><input id="password" type="password" autocomplete="current-password" required><button class="btn primary" type="submit">Continue</button></div></div>
+    </form>
     <div class="status" id="loginStatus" aria-live="polite"></div>
   </section>
 
   <div id="workspace" hidden>
-    <nav class="nav" aria-label="Finance sections">
+    <nav class="nav" aria-label="Payables sections">
+      <button type="button" data-tab="overview">Overview</button>
       <button type="button" data-tab="inbox">Inbox</button>
       <button type="button" data-tab="payables">Payables</button>
-      <button type="button" data-tab="cash">Cash Requirements</button>
+      <button type="button" data-tab="cash">Cash Plan</button>
       <button type="button" data-tab="payments">Payments</button>
       <button type="button" data-tab="savings">Savings</button>
-      <button type="button" data-tab="pnl">P&amp;L</button>
-      <a href="/hms-device-access-test/">Admin / Devices</a>
-      <a class="legacy" href="/payables/">Legacy Payables</a>
+      <button type="button" data-tab="reports">Reports</button>
+      <button type="button" data-tab="settings">Settings</button>
     </nav>
-    <div class="info"><strong>Migration mode:</strong> the original Payables page remains authoritative until Blob-to-Postgres parity is verified. New Inbox items and promoted finance records use the new database.</div>
+
+    <div class="safety-strip"><strong>Simple rule:</strong> finding a bill does not approve it, and approving it does not mean it was paid. Current payment connections only record external payments.</div>
+
+    <section id="tab-overview" class="tab-section">
+      <div class="cards overview-cards">
+        <button class="card action-card warn" type="button" data-go="payables"><span>Needs attention</span><strong id="overviewAttention">—</strong><small>Review before paying</small></button>
+        <button class="card action-card positive" type="button" data-go="payments"><span>Authorized</span><strong id="overviewAuthorized">—</strong><small>Approved, not necessarily paid</small></button>
+        <button class="card action-card" type="button" data-go="cash"><span>Expected this month</span><strong id="overviewExpected">—</strong><small>Bills, CAPEX and transfers</small></button>
+        <button class="card action-card" type="button" data-go="savings"><span>Potential savings</span><strong id="overviewSavings">—</strong><small>Subscriptions and cost review</small></button>
+      </div>
+
+      <div class="grid overview-grid">
+        <section class="panel">
+          <div class="section-head"><div><h2>What needs action</h2><div class="meta">Highest-priority unpaid items from the current Payables list and Finance Inbox.</div></div><button class="btn" id="overviewRefresh" type="button">Refresh</button></div>
+          <div id="overviewStatus" class="status"></div>
+          <div class="tablewrap"><table><thead><tr><th>Item</th><th>Clinic / category</th><th>State</th><th class="num">Amount</th><th></th></tr></thead><tbody id="overviewRows"></tbody></table></div>
+          <div id="overviewEmpty" class="empty" hidden>No payable items need attention.</div>
+        </section>
+
+        <aside class="panel quick-panel">
+          <h2>Common actions</h2>
+          <button class="quick-action" type="button" data-go="inbox"><strong>Add a bill</strong><span>Put a bill, invoice, or payment request into the Inbox.</span></button>
+          <button class="quick-action" type="button" data-go="payables"><strong>Review and authorize</strong><span>Check amounts, clinic, category, and authorization.</span></button>
+          <button class="quick-action" type="button" data-go="cash"><strong>Plan cash</strong><span>See expected obligations and add cash assumptions.</span></button>
+          <a class="quick-action" href="./workflow.html"><strong>See the workflow</strong><span>Plain-language explanation of how the system works.</span></a>
+          <div class="system-summary" id="overviewSources">Checking data sources…</div>
+        </aside>
+      </div>
+    </section>
 
     <section id="tab-inbox" class="tab-section">
-      <div class="cards"><div class="card"><span>Needs review</span><strong id="inboxNeeds">0</strong></div><div class="card warn"><span>Duplicates</span><strong id="inboxDup">0</strong></div><div class="card"><span>Promoted</span><strong id="inboxPromoted">0</strong></div><div class="card"><span>Total intake</span><strong id="inboxTotal">0</strong></div></div>
+      <div class="cards">
+        <div class="card warn"><span>Needs review</span><strong id="inboxNeeds">0</strong></div>
+        <div class="card"><span>Possible duplicates</span><strong id="inboxDup">0</strong></div>
+        <div class="card positive"><span>Moved to Payables</span><strong id="inboxPromoted">0</strong></div>
+        <div class="card"><span>Total found</span><strong id="inboxTotal">0</strong></div>
+      </div>
       <div class="grid">
-        <section class="panel"><h2>Send to Inbox</h2><form id="inboxAddForm">
-          <div class="field"><label for="inboxPayee">Payee / vendor</label><input id="inboxPayee" maxlength="300" placeholder="Vendor name"></div>
-          <div class="row2"><div class="field"><label for="inboxAmount">Amount</label><input id="inboxAmount" type="number" min="0" step="0.01" placeholder="0.00"></div><div class="field"><label for="inboxDue">Due date</label><input id="inboxDue" type="date"></div></div>
-          <div class="field"><label for="inboxInvoice">Invoice / reference</label><input id="inboxInvoice" maxlength="160"></div>
-          <div class="field"><label for="inboxNote">Description</label><textarea id="inboxNote" maxlength="2000"></textarea></div>
-          <button class="btn primary" type="submit">Add to Inbox</button><div id="inboxAddStatus" class="status"></div>
-        </form><div class="notice">Inbox discovery never authorizes or pays an item. Promote creates a review payable only.</div></section>
-        <section class="panel"><div class="section-head"><h2>Inbox</h2><button class="btn" id="inboxRefresh" type="button">Refresh</button></div><div id="inboxStatus" class="status"></div><div class="tablewrap"><table><thead><tr><th>Payee / source</th><th>Due</th><th class="num">Amount</th><th>Status</th><th>Action</th></tr></thead><tbody id="inboxRows"></tbody></table></div><div id="inboxEmpty" class="empty" hidden>No intake items.</div></section>
+        <section class="panel">
+          <h2>Add a bill or payment request</h2>
+          <p class="meta">This creates an Inbox item only. It does not authorize or pay anything.</p>
+          <form id="inboxAddForm">
+            <div class="field"><label for="inboxPayee">Payee / vendor</label><input id="inboxPayee" maxlength="300" placeholder="Vendor name"></div>
+            <div class="row2"><div class="field"><label for="inboxAmount">Amount</label><input id="inboxAmount" type="number" min="0" step="0.01" placeholder="0.00"></div><div class="field"><label for="inboxDue">Due date</label><input id="inboxDue" type="date"></div></div>
+            <div class="field"><label for="inboxInvoice">Invoice / reference</label><input id="inboxInvoice" maxlength="160"></div>
+            <div class="field"><label for="inboxNote">Description or source note</label><textarea id="inboxNote" maxlength="2000"></textarea></div>
+            <button class="btn primary" type="submit">Add to Inbox</button>
+            <div id="inboxAddStatus" class="status"></div>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="section-head"><div><h2>Inbox review</h2><div class="meta">Move a valid item to the Payables queue or reject it.</div></div><button class="btn" id="inboxRefresh" type="button">Refresh</button></div>
+          <div id="inboxStatus" class="status"></div>
+          <div class="tablewrap"><table><thead><tr><th>Payee / source</th><th>Due</th><th class="num">Amount</th><th>Status</th><th>Action</th></tr></thead><tbody id="inboxRows"></tbody></table></div>
+          <div id="inboxEmpty" class="empty" hidden>No Inbox items.</div>
+        </section>
       </div>
     </section>
 
     <section id="tab-payables" class="tab-section">
-      <div class="cards"><div class="card"><span>Open payables</span><strong id="payableCount">0</strong></div><div class="card positive"><span>Authorized</span><strong id="payableAuthorized">0</strong></div><div class="card warn"><span>Needs review</span><strong id="payableReview">0</strong></div><div class="card"><span>Recurring rules</span><strong id="ruleCount">0</strong></div></div>
-      <section class="panel"><div class="section-head"><div><h2>Approval queue</h2><div class="meta">Checkbox authorization is separate from payment.</div></div><button class="btn" id="payablesRefresh" type="button">Refresh</button></div><div id="payablesStatus" class="status"></div><div class="tablewrap"><table><thead><tr><th>Authorize</th><th>Payee</th><th>Due</th><th>Kind</th><th class="num">Amount</th><th>Status</th><th>Auto check</th></tr></thead><tbody id="payableRows"></tbody></table></div></section>
-      <div class="grid2">
-        <section class="panel"><h2>Recurring authorization rules</h2><div id="ruleCards"></div></section>
-        <section class="panel"><h2>Add payment recipe</h2><form id="recipeForm"><div class="field"><label for="recipeRule">Recurring payable</label><select id="recipeRule" required></select></div><div class="row2"><div class="field"><label for="recipeMethod">Method</label><select id="recipeMethod"><option value="autopay">Autopay</option><option value="ach">ACH</option><option value="bill_pay">Bill pay</option><option value="portal">Vendor portal</option><option value="check">Check</option><option value="zelle">Zelle</option><option value="card">Card</option><option value="other">Other</option></select></div><div class="field"><label for="recipeLabel">Label</label><input id="recipeLabel" required placeholder="How this vendor is paid"></div></div><div class="field"><label for="recipeDestination">Masked destination / account</label><input id="recipeDestination" placeholder="e.g. account ending 1234"></div><div class="field"><label for="recipeInstructions">Instructions</label><textarea id="recipeInstructions" placeholder="Portal, timing, special instructions"></textarea></div><button class="btn primary" type="submit">Save for review</button><div id="recipeStatus" class="status"></div></form><div class="notice">A newly discovered payment recipe starts in Review. It must be explicitly activated before automatic authorization can rely on it.</div></section>
+      <div class="toolbar payables-toolbar">
+        <div class="field compact"><label for="payablesMonth">Month</label><input id="payablesMonth" type="month"></div>
+        <div class="field compact grow"><label for="payablesSearch">Search</label><input id="payablesSearch" type="search" placeholder="Vendor, clinic or category"></div>
+        <div class="field compact"><label for="payablesFilter">Show</label><select id="payablesFilter"><option value="all">All open</option><option value="review">Needs review</option><option value="authorized">Authorized</option><option value="ready">Ready</option><option value="vendor_bill">Vendor bills</option><option value="capex_commitment">CAPEX</option><option value="intercompany_transfer">Transfers</option></select></div>
+        <button class="btn" id="payablesRefresh" type="button">Refresh</button>
       </div>
+      <div class="cards">
+        <div class="card"><span>Open items</span><strong id="payableCount">0</strong></div>
+        <div class="card warn"><span>Needs review</span><strong id="payableReview">0</strong></div>
+        <div class="card positive"><span>Authorized</span><strong id="payableAuthorized">$0</strong></div>
+        <div class="card"><span>Expected total</span><strong id="payableTotal">$0</strong></div>
+      </div>
+      <section class="panel">
+        <div class="section-head"><div><h2>Payables queue</h2><div class="meta">Check the box to authorize the full amount. The checkbox does not send money.</div></div><span id="payablesStatus" class="status"></span></div>
+        <div class="tablewrap"><table><thead><tr><th>Authorize</th><th>Payee</th><th>Clinic / category</th><th>Type</th><th class="num">Amount</th><th>Status</th><th>How paid</th></tr></thead><tbody id="payableRows"></tbody></table></div>
+        <div id="payablesEmpty" class="empty" hidden>No items match this view.</div>
+      </section>
     </section>
 
     <section id="tab-cash" class="tab-section">
-      <div class="toolbar"><div class="field compact"><label for="cashDays">Horizon</label><select id="cashDays"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="60">60 days</option><option value="90">90 days</option></select></div><button class="btn" id="cashRefresh" type="button">Refresh</button><span id="cashStatus" class="status"></span></div>
-      <div class="cards"><div class="card"><span>Cash on hand</span><strong id="cashOnHand">$0</strong></div><div class="card warn"><span>Required payables</span><strong id="cashRequired">$0</strong></div><div class="card"><span>Net forecast items</span><strong id="cashForecastNet">$0</strong></div><div class="card positive"><span>Projected cash</span><strong id="cashProjected">$0</strong></div></div>
-      <div class="grid2"><section class="panel"><h2>Cash requirements</h2><div class="tablewrap"><table><thead><tr><th>Due</th><th>Payee</th><th>Clinic</th><th>State</th><th class="num">Amount</th></tr></thead><tbody id="cashRows"></tbody></table></div></section><section class="panel"><h2>Add planning assumption</h2><form id="forecastForm"><div class="field"><label for="forecastLabel">Label</label><input id="forecastLabel" required></div><div class="row3"><div class="field"><label for="forecastDirection">Direction</label><select id="forecastDirection"><option value="inflow">Inflow</option><option value="outflow">Outflow</option></select></div><div class="field"><label for="forecastDate">Date</label><input id="forecastDate" type="date" required></div><div class="field"><label for="forecastAmount">Amount</label><input id="forecastAmount" type="number" min="0" step="0.01" required></div></div><button class="btn primary">Add assumption</button><div id="forecastStatus" class="status"></div></form><h3 style="margin-top:18px">Current assumptions</h3><div class="tablewrap"><table><thead><tr><th>Date</th><th>Item</th><th class="num">Amount</th></tr></thead><tbody id="forecastRows"></tbody></table></div></section></div>
+      <div class="toolbar"><div class="field compact"><label for="cashDays">Planning horizon</label><select id="cashDays"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="60">60 days</option><option value="90">90 days</option></select></div><button class="btn" id="cashRefresh" type="button">Refresh</button><span id="cashStatus" class="status"></span></div>
+      <div class="cards">
+        <div class="card"><span>Cash on hand</span><strong id="cashOnHand">Not linked</strong></div>
+        <div class="card warn"><span>Needs review</span><strong id="cashReview">$0</strong></div>
+        <div class="card positive"><span>Authorized</span><strong id="cashAuthorized">$0</strong></div>
+        <div class="card"><span>Expected obligations</span><strong id="cashRequired">$0</strong></div>
+      </div>
+      <div class="grid2">
+        <section class="panel"><h2>Cash requirements</h2><div class="meta">Items without a due date are shown as expected during the selected month.</div><div class="tablewrap spaced"><table><thead><tr><th>Timing</th><th>Payee</th><th>Clinic</th><th>State</th><th class="num">Amount</th></tr></thead><tbody id="cashRows"></tbody></table></div></section>
+        <section class="panel"><h2>Add a planning assumption</h2><form id="forecastForm"><div class="field"><label for="forecastLabel">Label</label><input id="forecastLabel" required></div><div class="row3"><div class="field"><label for="forecastDirection">Direction</label><select id="forecastDirection"><option value="inflow">Inflow</option><option value="outflow">Outflow</option></select></div><div class="field"><label for="forecastDate">Date</label><input id="forecastDate" type="date" required></div><div class="field"><label for="forecastAmount">Amount</label><input id="forecastAmount" type="number" min="0" step="0.01" required></div></div><button class="btn primary">Add assumption</button><div id="forecastStatus" class="status"></div></form><h3 class="spaced">Current assumptions</h3><div class="tablewrap"><table><thead><tr><th>Date</th><th>Item</th><th class="num">Amount</th></tr></thead><tbody id="forecastRows"></tbody></table></div></section>
+      </div>
     </section>
 
     <section id="tab-payments" class="tab-section">
-      <div class="cards"><div class="card"><span>Payment records</span><strong id="paymentCount">0</strong></div><div class="card warn"><span>Bank unmatched</span><strong id="bankUnmatched">0</strong></div><div class="card"><span>Suggested matches</span><strong id="matchSuggested">0</strong></div><div class="card positive"><span>Confirmed matches</span><strong id="matchConfirmed">0</strong></div></div>
-      <div class="grid2"><section class="panel"><h2>Payment intents</h2><div class="info">Initial adapters are record-only. HMS does not transmit money in this version.</div><div class="tablewrap" style="margin-top:10px"><table><thead><tr><th>Payee</th><th>Status</th><th>Method</th><th class="num">Amount</th><th>Action</th></tr></thead><tbody id="paymentRows"></tbody></table></div></section><section class="panel"><h2>Reconciliation review</h2><div class="tablewrap"><table><thead><tr><th>Bank item</th><th>Payee</th><th>Confidence</th><th>Action</th></tr></thead><tbody id="matchRows"></tbody></table></div></section></div>
-      <section class="panel"><h2>Authorized items ready for payment record</h2><div class="tablewrap"><table><thead><tr><th>Payee</th><th>Due</th><th class="num">Authorized</th><th>Adapter</th><th></th></tr></thead><tbody id="paymentReadyRows"></tbody></table></div></section>
+      <div class="info"><strong>Current stage:</strong> the app records how an authorized payment is completed outside HMS. It does not yet transmit money.</div>
+      <div class="cards">
+        <div class="card positive"><span>Ready to record</span><strong id="paymentReadyCount">0</strong></div>
+        <div class="card"><span>Payment records</span><strong id="paymentCount">0</strong></div>
+        <div class="card warn"><span>Bank unmatched</span><strong id="bankUnmatched">0</strong></div>
+        <div class="card"><span>Suggested matches</span><strong id="matchSuggested">0</strong></div>
+      </div>
+      <section class="panel"><h2>Authorized Finance items</h2><div class="meta">Existing monthly-list items become payment records after their controlled data copy. They remain visible in Payables and Cash Plan meanwhile.</div><div class="tablewrap spaced"><table><thead><tr><th>Payee</th><th>Due</th><th class="num">Authorized</th><th>Method</th><th></th></tr></thead><tbody id="paymentReadyRows"></tbody></table></div><div id="paymentReadyEmpty" class="empty" hidden>No Finance items are ready for a payment record.</div></section>
+      <div class="grid2">
+        <section class="panel"><h2>Payment history</h2><div class="tablewrap"><table><thead><tr><th>Payee</th><th>Status</th><th>Method</th><th class="num">Amount</th><th>Action</th></tr></thead><tbody id="paymentRows"></tbody></table></div></section>
+        <section class="panel"><h2>Bank matching</h2><div class="tablewrap"><table><thead><tr><th>Bank item</th><th>Payee</th><th>Confidence</th><th>Action</th></tr></thead><tbody id="matchRows"></tbody></table></div></section>
+      </div>
     </section>
 
     <section id="tab-savings" class="tab-section">
-      <div class="cards"><div class="card"><span>Subscriptions tracked</span><strong id="subscriptionCount">0</strong></div><div class="card"><span>Open opportunities</span><strong id="opportunityCount">0</strong></div><div class="card positive"><span>Potential annual savings</span><strong id="potentialSavings">$0</strong></div><div class="card"><span>Last scan</span><strong id="lastScan" style="font-size:16px">Never</strong></div></div>
-      <div class="grid"><section class="panel"><h2>Add subscription</h2><form id="subscriptionForm"><div class="field"><label for="subName">Service</label><input id="subName" required></div><div class="row2"><div class="field"><label for="subAmount">Current amount</label><input id="subAmount" type="number" min="0" step="0.01" required></div><div class="field"><label for="subFrequency">Frequency</label><select id="subFrequency"><option value="monthly">Monthly</option><option value="annual">Annual</option><option value="quarterly">Quarterly</option><option value="weekly">Weekly</option><option value="irregular">Irregular</option></select></div></div><div class="field"><label for="subRenewal">Next renewal</label><input id="subRenewal" type="date"></div><div class="row2"><div class="field"><label for="subSeats">Seats purchased</label><input id="subSeats" type="number" min="0"></div><div class="field"><label for="subUsed">Estimated used</label><input id="subUsed" type="number" min="0"></div></div><div class="field"><label for="subAnnual">Known annual price</label><input id="subAnnual" type="number" min="0" step="0.01"></div><button class="btn primary">Add subscription</button><div id="subscriptionStatus" class="status"></div></form></section><section class="panel"><div class="section-head"><div><h2>Optimization opportunities</h2><div class="meta">Review only; no automatic cancellation or vendor contact.</div></div><button class="btn primary" id="runSavingsScan" type="button">Scan now</button></div><div id="savingsStatus" class="status"></div><div id="opportunityCards"></div></section></div>
+      <div class="cards">
+        <div class="card"><span>Subscriptions tracked</span><strong id="subscriptionCount">0</strong></div>
+        <div class="card warn"><span>Open opportunities</span><strong id="opportunityCount">0</strong></div>
+        <div class="card positive"><span>Potential annual savings</span><strong id="potentialSavings">$0</strong></div>
+        <div class="card"><span>Last scan</span><strong id="lastScan" class="small-value">Never</strong></div>
+      </div>
+      <div class="grid">
+        <section class="panel"><h2>Add or confirm a subscription</h2><form id="subscriptionForm"><div class="field"><label for="subName">Service</label><input id="subName" required></div><div class="row2"><div class="field"><label for="subAmount">Current amount</label><input id="subAmount" type="number" min="0" step="0.01" required></div><div class="field"><label for="subFrequency">Frequency</label><select id="subFrequency"><option value="monthly">Monthly</option><option value="annual">Annual</option><option value="quarterly">Quarterly</option><option value="weekly">Weekly</option><option value="irregular">Irregular</option></select></div></div><div class="field"><label for="subRenewal">Next renewal</label><input id="subRenewal" type="date"></div><div class="row2"><div class="field"><label for="subSeats">Seats purchased</label><input id="subSeats" type="number" min="0"></div><div class="field"><label for="subUsed">Estimated used</label><input id="subUsed" type="number" min="0"></div></div><div class="field"><label for="subAnnual">Known annual price</label><input id="subAnnual" type="number" min="0" step="0.01"></div><button class="btn primary">Save subscription</button><div id="subscriptionStatus" class="status"></div></form></section>
+        <section class="panel"><div class="section-head"><div><h2>Savings opportunities</h2><div class="meta">Review only; the app does not cancel or contact vendors automatically.</div></div><button class="btn primary" id="runSavingsScan" type="button">Scan now</button></div><div id="savingsStatus" class="status"></div><div id="opportunityCards"></div></section>
+      </div>
     </section>
 
-    <section id="tab-pnl" class="tab-section">
+    <section id="tab-reports" class="tab-section">
       <div class="toolbar"><div class="field compact"><label for="pnlMonth">Month</label><input id="pnlMonth" type="month"></div><button class="btn" id="pnlRefresh" type="button">Refresh</button><span class="status" id="pnlStatus"></span></div>
       <div class="cards"><div class="card"><span>Posted P&amp;L lines</span><strong id="pnlLineCount">0</strong></div><div class="card"><span>Accounts</span><strong id="pnlAccountCount">0</strong></div><div class="card"><span>Clinics</span><strong id="pnlClinicCount">0</strong></div><div class="card positive"><span>Net P&amp;L</span><strong id="pnlTotal">$0</strong></div></div>
-      <div class="grid2"><section class="panel"><h2>By account</h2><div class="tablewrap"><table><thead><tr><th>Account</th><th class="num">Amount</th></tr></thead><tbody id="pnlAccountRows"></tbody></table></div></section><section class="panel"><h2>By clinic</h2><div class="tablewrap"><table><thead><tr><th>Clinic</th><th class="num">Amount</th></tr></thead><tbody id="pnlClinicRows"></tbody></table></div></section></div><div class="notice">This P&amp;L reads only posted double-entry journal lines. Payable discovery, approval, or a payment claim alone never enters this report.</div>
+      <div class="grid2"><section class="panel"><h2>By account</h2><div class="tablewrap"><table><thead><tr><th>Account</th><th class="num">Amount</th></tr></thead><tbody id="pnlAccountRows"></tbody></table></div></section><section class="panel"><h2>By clinic</h2><div class="tablewrap"><table><thead><tr><th>Clinic</th><th class="num">Amount</th></tr></thead><tbody id="pnlClinicRows"></tbody></table></div></section></div><div class="notice">Reports use only posted double-entry journal entries. An Inbox item, approval checkbox, or unconfirmed payment does not enter the P&amp;L.</div>
+    </section>
+
+    <section id="tab-settings" class="tab-section">
+      <div class="grid2">
+        <section class="panel"><h2>Payment and authorization rules</h2><p class="meta">Automatic authorization remains bounded by amount, verified payment destination, and exception checks.</p><div id="ruleCards"></div></section>
+        <section class="panel"><h2>Add a payment recipe</h2><form id="recipeForm"><div class="field"><label for="recipeRule">Recurring payable</label><select id="recipeRule" required></select></div><div class="row2"><div class="field"><label for="recipeMethod">Method</label><select id="recipeMethod"><option value="autopay">Autopay</option><option value="ach">ACH</option><option value="bill_pay">Bill pay</option><option value="portal">Vendor portal</option><option value="check">Check</option><option value="zelle">Zelle</option><option value="card">Card</option><option value="other">Other</option></select></div><div class="field"><label for="recipeLabel">Label</label><input id="recipeLabel" required placeholder="How this vendor is paid"></div></div><div class="field"><label for="recipeDestination">Masked destination / account</label><input id="recipeDestination" placeholder="Account ending 1234"></div><div class="field"><label for="recipeInstructions">Instructions</label><textarea id="recipeInstructions" placeholder="Portal, timing, or special instructions"></textarea></div><button class="btn primary" type="submit">Save for review</button><div id="recipeStatus" class="status"></div></form></section>
+      </div>
+      <div class="grid3">
+        <a class="settings-link" href="/hms-device-access-test/"><strong>Browsers and access</strong><span>See, name, allow, or block enrolled browsers.</span></a>
+        <a class="settings-link" href="./workflow.html"><strong>Workflow guide</strong><span>See the exact bill-to-accounting process.</span></a>
+        <a class="settings-link" href="./migration.html"><strong>Data setup</strong><span>Administrator-only copy and comparison of the existing list.</span></a>
+      </div>
     </section>
   </div>
 </main>
 <script src="./api.js"></script>
-<script src="./app.js"></script>
+<script type="module" src="./app-main.js"></script>
 </body>
 </html>
