@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { audit, rest, supabaseConfig } from './hms-device-session.mjs';
 import { accessTokenForConnection, gmailConfigurationStatus } from './payables-gmail-auth.mjs';
 import { classifyPayablesEmail, defaultGmailQuery } from './payables-gmail-classifier.mjs';
@@ -14,6 +14,13 @@ function clean(value, max = 2000) {
 
 function errorMessage(error) {
   return error instanceof Error ? error.message : String(error || 'unknown_error');
+}
+
+function sanitizeEvidenceText(value) {
+  return clean(value, 4000)
+    .replace(/\b\d{3}-\d{2}-\d{4}\b/g, 'XXX-XX-XXXX')
+    .replace(/((?:routing|account|acct|bank account|card)\s*(?:number|no\.?|#|ending)?\s*[:#]?\s*)(?:[Xx* -]*)(\d{4,19})/gi, (_match, prefix, digits) => `${prefix}XXXX${String(digits).slice(-4)}`)
+    .replace(/\b(\d{13,19})\b/g, (_match, digits) => `XXXX${String(digits).slice(-4)}`);
 }
 
 function contentHash(message) {
@@ -278,7 +285,7 @@ function candidateFromMessage(message, maps) {
   const vendorId = maps.vendorByName.get(String(decision.vendor || '').toLowerCase()) || null;
   const accountId = maps.accountByCode.get(decision.accountCode) || null;
   const clinicId = decision.clinicName ? maps.clinicByName.get(decision.clinicName.toLowerCase()) || null : null;
-  const evidenceSummary = clean(`${message.subject}\n${message.snippet || message.text}`.replace(/\s+/g, ' '), 4000);
+  const evidenceSummary = sanitizeEvidenceText(`${message.subject}\n${message.snippet || message.text}`.replace(/\s+/g, ' '));
   return {
     decision,
     financialState: state,
@@ -496,121 +503,144 @@ export async function scanGmailConnection(connection, {
   const config = supabaseConfig();
   if (!config) throw new Error('supabase_not_configured');
   if (!connection?.id || connection.status !== 'active') throw new Error('gmail_connection_not_active');
-  const effectiveMax = Math.max(1, Math.min(100, Number(maxMessages || connection.config?.max_messages_per_scan || 75)));
-  const runRows = await rest(config, 'hms_finance_discovery_runs', {
+  const lockToken = randomUUID();
+  const claimed = await rest(config, 'rpc/hms_finance_claim_gmail_scan', {
     method: 'POST',
-    prefer: 'return=representation',
-    body: {
-      connection_id: connection.id,
-      connector_type: 'gmail',
-      source_account: connection.source_account,
-      trigger_type: triggerType,
-      query_text: clean(connection.config?.initial_query, 2000) || defaultGmailQuery(),
-      status: 'running',
-      cursor_start: connection.history_cursor || null,
-      metadata: { max_messages: effectiveMax, device_id: deviceId },
-    },
+    body: { p_connection_id: connection.id, p_lock_token: lockToken, p_ttl_seconds: 240 },
   });
-  const run = runRows?.[0];
-  if (!run?.id) throw new Error('gmail_discovery_run_create_failed');
+  if (claimed !== true) {
+    return {
+      skipped: true,
+      reason: 'scan_already_running',
+      sourceAccount: connection.source_account,
+      messagesFound: 0,
+      messagesScanned: 0,
+      candidatesCreated: 0,
+    };
+  }
 
   try {
-    const accessToken = await accessTokenForConnection(config, connection);
-    const maps = await referenceMaps(config);
-    const listed = await listMessageIds(accessToken, connection, effectiveMax);
-    const outcomes = await mapLimit(listed.ids, 5, (id) => processMessage(config, maps, connection, run, accessToken, id));
-    const successes = outcomes.filter((outcome) => outcome.status === 'fulfilled').map((outcome) => outcome.value);
-    const failures = outcomes.filter((outcome) => outcome.status === 'rejected');
-    const completedAt = new Date().toISOString();
-    const stats = {
-      messagesFound: listed.ids.length,
-      messagesScanned: successes.length,
-      candidatesCreated: successes.filter((item) => item.intakeCreated).length,
-      candidatesUpdated: successes.filter((item) => item.intakeUpdated).length,
-      duplicatesFound: successes.filter((item) => item.duplicate).length,
-      receiptsSkipped: successes.filter((item) => item.financialState === 'already_paid').length,
-      irrelevantSkipped: successes.filter((item) => item.financialState === 'not_payable').length,
-      entityHolds: successes.filter((item) => item.financialState === 'entity_hold').length,
-      errorCount: failures.length,
-      mode: listed.mode,
-      cursorStart: listed.cursorStart,
-      cursorEnd: listed.cursorEnd,
-    };
-
-    await Promise.all([
-      rest(config, `hms_finance_discovery_runs?id=eq.${encodeURIComponent(run.id)}`, {
-        method: 'PATCH',
-        prefer: 'return=minimal',
-        body: {
-          status: failures.length ? 'partial' : 'success',
-          cursor_end: listed.cursorEnd || null,
-          messages_found: stats.messagesFound,
-          messages_scanned: stats.messagesScanned,
-          candidates_created: stats.candidatesCreated,
-          candidates_updated: stats.candidatesUpdated,
-          duplicates_found: stats.duplicatesFound,
-          receipts_skipped: stats.receiptsSkipped,
-          irrelevant_skipped: stats.irrelevantSkipped,
-          entity_holds: stats.entityHolds,
-          error_count: stats.errorCount,
-          error_text: failures.length ? clean(failures.map((item) => errorMessage(item.reason)).join('; '), 2000) : null,
-          completed_at: completedAt,
-          metadata: { ...stats, query: listed.query, device_id: deviceId },
-        },
-      }),
-      rest(config, `hms_finance_source_connections?id=eq.${encodeURIComponent(connection.id)}`, {
-        method: 'PATCH',
-        prefer: 'return=minimal',
-        body: {
-          status: failures.length ? 'error' : 'active',
-          history_cursor: listed.cursorEnd || connection.history_cursor,
-          last_scanned_at: completedAt,
-          last_success_at: failures.length ? connection.last_success_at : completedAt,
-          last_error_at: failures.length ? completedAt : null,
-          error_text: failures.length ? `${failures.length} email(s) could not be processed.` : null,
-          updated_at: completedAt,
-        },
-      }),
-      rest(config, 'hms_sync_state?on_conflict=connector,source_account', {
-        method: 'POST',
-        prefer: 'resolution=merge-duplicates,return=minimal',
-        body: {
-          connector: 'gmail_payables',
-          source_account: connection.source_account,
-          cursor: listed.cursorEnd || null,
-          last_attempt_at: completedAt,
-          last_success_at: failures.length ? null : completedAt,
-          status: failures.length ? 'partial' : 'success',
-          error_text: failures.length ? `${failures.length} email(s) failed.` : null,
-          stats,
-        },
-      }),
-    ]);
-
-    await audit(config, 'gmail_payables_scan_completed', 'source_connection', connection.id, deviceId, null, stats, {
-      sourceAccount: connection.source_account,
-      triggerType,
+    const effectiveMax = Math.max(1, Math.min(100, Number(maxMessages || connection.config?.max_messages_per_scan || 75)));
+    const runRows = await rest(config, 'hms_finance_discovery_runs', {
+      method: 'POST',
+      prefer: 'return=representation',
+      body: {
+        connection_id: connection.id,
+        connector_type: 'gmail',
+        source_account: connection.source_account,
+        trigger_type: triggerType,
+        query_text: clean(connection.config?.initial_query, 2000) || defaultGmailQuery(),
+        status: 'running',
+        cursor_start: connection.history_cursor || null,
+        metadata: { max_messages: effectiveMax, device_id: deviceId },
+      },
     });
-    return { runId: run.id, sourceAccount: connection.source_account, ...stats };
-  } catch (error) {
-    const failedAt = new Date().toISOString();
-    const message = clean(errorMessage(error), 2000);
-    await Promise.allSettled([
-      rest(config, `hms_finance_discovery_runs?id=eq.${encodeURIComponent(run.id)}`, {
-        method: 'PATCH', prefer: 'return=minimal',
-        body: { status: 'failed', error_count: 1, error_text: message, completed_at: failedAt },
-      }),
-      rest(config, `hms_finance_source_connections?id=eq.${encodeURIComponent(connection.id)}`, {
-        method: 'PATCH', prefer: 'return=minimal',
-        body: { status: 'error', last_error_at: failedAt, error_text: message, updated_at: failedAt },
-      }),
-    ]);
-    await audit(config, 'gmail_payables_scan_failed', 'source_connection', connection.id, deviceId, null, null, {
-      sourceAccount: connection.source_account,
-      triggerType,
-      error: message.slice(0, 500),
-    });
-    throw error;
+    const run = runRows?.[0];
+    if (!run?.id) throw new Error('gmail_discovery_run_create_failed');
+
+    try {
+      const accessToken = await accessTokenForConnection(config, connection);
+      const maps = await referenceMaps(config);
+      const listed = await listMessageIds(accessToken, connection, effectiveMax);
+      const outcomes = await mapLimit(listed.ids, 5, (id) => processMessage(config, maps, connection, run, accessToken, id));
+      const successes = outcomes.filter((outcome) => outcome.status === 'fulfilled').map((outcome) => outcome.value);
+      const failures = outcomes.filter((outcome) => outcome.status === 'rejected');
+      const completedAt = new Date().toISOString();
+      const stats = {
+        messagesFound: listed.ids.length,
+        messagesScanned: successes.length,
+        candidatesCreated: successes.filter((item) => item.intakeCreated).length,
+        candidatesUpdated: successes.filter((item) => item.intakeUpdated).length,
+        duplicatesFound: successes.filter((item) => item.duplicate).length,
+        receiptsSkipped: successes.filter((item) => item.financialState === 'already_paid').length,
+        irrelevantSkipped: successes.filter((item) => item.financialState === 'not_payable').length,
+        entityHolds: successes.filter((item) => item.financialState === 'entity_hold').length,
+        errorCount: failures.length,
+        mode: listed.mode,
+        cursorStart: listed.cursorStart,
+        cursorEnd: listed.cursorEnd,
+      };
+
+      await Promise.all([
+        rest(config, `hms_finance_discovery_runs?id=eq.${encodeURIComponent(run.id)}`, {
+          method: 'PATCH',
+          prefer: 'return=minimal',
+          body: {
+            status: failures.length ? 'partial' : 'success',
+            cursor_end: listed.cursorEnd || null,
+            messages_found: stats.messagesFound,
+            messages_scanned: stats.messagesScanned,
+            candidates_created: stats.candidatesCreated,
+            candidates_updated: stats.candidatesUpdated,
+            duplicates_found: stats.duplicatesFound,
+            receipts_skipped: stats.receiptsSkipped,
+            irrelevant_skipped: stats.irrelevantSkipped,
+            entity_holds: stats.entityHolds,
+            error_count: stats.errorCount,
+            error_text: failures.length ? clean(failures.map((item) => errorMessage(item.reason)).join('; '), 2000) : null,
+            completed_at: completedAt,
+            metadata: { ...stats, query: listed.query, device_id: deviceId },
+          },
+        }),
+        rest(config, `hms_finance_source_connections?id=eq.${encodeURIComponent(connection.id)}`, {
+          method: 'PATCH',
+          prefer: 'return=minimal',
+          body: {
+            status: 'active',
+            history_cursor: listed.cursorEnd || connection.history_cursor,
+            last_scanned_at: completedAt,
+            last_success_at: failures.length ? connection.last_success_at : completedAt,
+            last_error_at: failures.length ? completedAt : null,
+            error_text: failures.length ? `${failures.length} email(s) could not be processed.` : null,
+            updated_at: completedAt,
+          },
+        }),
+        rest(config, 'hms_sync_state?on_conflict=connector,source_account', {
+          method: 'POST',
+          prefer: 'resolution=merge-duplicates,return=minimal',
+          body: {
+            connector: 'gmail_payables',
+            source_account: connection.source_account,
+            cursor: listed.cursorEnd || null,
+            last_attempt_at: completedAt,
+            last_success_at: failures.length ? null : completedAt,
+            status: failures.length ? 'partial' : 'success',
+            error_text: failures.length ? `${failures.length} email(s) failed.` : null,
+            stats,
+          },
+        }),
+      ]);
+
+      await audit(config, 'gmail_payables_scan_completed', 'source_connection', connection.id, deviceId, null, stats, {
+        sourceAccount: connection.source_account,
+        triggerType,
+      });
+      return { runId: run.id, sourceAccount: connection.source_account, ...stats };
+    } catch (error) {
+      const failedAt = new Date().toISOString();
+      const message = clean(errorMessage(error), 2000);
+      await Promise.allSettled([
+        rest(config, `hms_finance_discovery_runs?id=eq.${encodeURIComponent(run.id)}`, {
+          method: 'PATCH', prefer: 'return=minimal',
+          body: { status: 'failed', error_count: 1, error_text: message, completed_at: failedAt },
+        }),
+        rest(config, `hms_finance_source_connections?id=eq.${encodeURIComponent(connection.id)}`, {
+          method: 'PATCH', prefer: 'return=minimal',
+          body: { status: 'error', last_error_at: failedAt, error_text: message, updated_at: failedAt },
+        }),
+      ]);
+      await audit(config, 'gmail_payables_scan_failed', 'source_connection', connection.id, deviceId, null, null, {
+        sourceAccount: connection.source_account,
+        triggerType,
+        error: message.slice(0, 500),
+      });
+      throw error;
+    }
+  } finally {
+    await rest(config, 'rpc/hms_finance_release_gmail_scan', {
+      method: 'POST',
+      body: { p_connection_id: connection.id, p_lock_token: lockToken },
+    }).catch(() => null);
   }
 }
 
