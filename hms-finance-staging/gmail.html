@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HMS Payables Email Discovery</title>
+<link rel="stylesheet" href="./app.css">
+<style>
+.connect-shell{max-width:980px;margin:0 auto}.connect-card{padding:18px}.state-line{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.state-dot{width:12px;height:12px;border-radius:50%;background:#946200}.state-dot.good{background:#26734d}.state-dot.bad{background:#a23b36}.plain-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}.plain-step{border:1px solid var(--line);border-radius:10px;padding:13px;background:#fff}.plain-step strong{display:block;color:var(--navy)}.plain-step span{display:block;color:var(--muted);font-size:12px;margin-top:4px}.connection-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.connection-details{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.connection-detail{border:1px solid #e3e8ed;border-radius:9px;padding:11px;background:#f9fbfc}.connection-detail span{display:block;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase}.connection-detail strong{display:block;margin-top:4px;overflow-wrap:anywhere}.result-box{margin-top:14px;padding:12px;border-radius:9px;background:var(--soft);border-left:4px solid var(--blue)}@media(max-width:680px){.plain-steps,.connection-details{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="shell connect-shell">
+  <header class="top">
+    <div><div class="eyebrow">Hyperbaric Management Services</div><h1>Payables Email Discovery</h1><div class="muted">Connect the HMS mailbox so possible bills appear in the Payables Inbox.</div></div>
+    <div class="topactions"><a class="btn" href="/hms-payables#inbox">Back to Payables</a><span id="deviceState" class="muted"></span></div>
+  </header>
+
+  <section class="panel login" id="loginPanel">
+    <h2>HMS access</h2>
+    <p>Enter the shared HMS password once on this browser.</p>
+    <form id="loginForm"><div class="field"><label for="password">Password</label><div class="loginrow"><input id="password" type="password" autocomplete="current-password" required><button class="btn primary" type="submit">Continue</button></div></div></form>
+    <div id="loginStatus" class="status" aria-live="polite"></div>
+  </section>
+
+  <div id="workspace" hidden>
+    <div class="safety-strip"><strong>Read-only discovery:</strong> email scanning can add a possible bill to the Inbox. It cannot authorize a payment, change a payment destination, move money, or post accounting.</div>
+
+    <div class="plain-steps">
+      <div class="plain-step"><strong>1. Connect once</strong><span>An administrator gives read-only access to hms@healtho2.com.</span></div>
+      <div class="plain-step"><strong>2. Scan automatically</strong><span>New mail is checked incrementally every four hours. Manual Scan Now remains available.</span></div>
+      <div class="plain-step"><strong>3. Review in Inbox</strong><span>Invoices and payment requests appear for review with their source evidence.</span></div>
+    </div>
+
+    <section class="panel connect-card">
+      <div class="section-head"><div><h2>Mailbox connection</h2><div class="state-line"><span id="stateDot" class="state-dot"></span><strong id="connectionState">Checking…</strong></div></div><button class="btn" id="refresh" type="button">Refresh</button></div>
+      <div id="connectionMessage" class="status">Loading connection status…</div>
+      <div class="connection-details">
+        <div class="connection-detail"><span>Mailbox</span><strong id="mailbox">hms@healtho2.com</strong></div>
+        <div class="connection-detail"><span>Last successful scan</span><strong id="lastScan">Never</strong></div>
+        <div class="connection-detail"><span>Connection type</span><strong>Google Gmail read-only</strong></div>
+        <div class="connection-detail"><span>Automatic frequency</span><strong>Every 4 hours</strong></div>
+      </div>
+      <div class="connection-actions">
+        <button class="btn primary" id="connect" type="button">Connect Gmail</button>
+        <button class="btn good" id="scan" type="button" hidden>Scan now</button>
+        <button class="btn danger" id="disconnect" type="button" hidden>Disconnect</button>
+      </div>
+      <div id="actionResult" class="result-box" hidden></div>
+    </section>
+
+    <section class="panel">
+      <h2>What the scanner looks for</h2>
+      <p>Invoices, balances due, payment requests, past-due notices, statements, subscription renewals, and invoice-like attachments. Receipt-only messages are ignored.</p>
+      <div class="notice"><strong>Changed bank instructions:</strong> any email that appears to introduce new or changed ACH, wire, routing, account, remittance, or payment instructions is placed on hold for independent verification.</div>
+    </section>
+  </div>
+</main>
+<script src="./api.js"></script>
+<script src="./gmail.js"></script>
+</body>
+</html>
