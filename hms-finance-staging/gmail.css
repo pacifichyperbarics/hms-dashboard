@@ -1,0 +1,14 @@
+.connection-status{font-size:18px;font-weight:800;margin:6px 0 3px;color:var(--muted)}
+.connection-status.good{color:var(--green)}
+.connection-status.warn{color:var(--amber)}
+.connection-status.bad{color:var(--red)}
+.gmail-panel{margin-bottom:14px}
+.gmail-cards{margin-top:14px}
+.connection-list{display:grid;gap:8px;margin-top:12px}
+.connection-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff}
+.connection-row .actions{justify-content:flex-end}
+.compact-empty{padding:16px}
+.danger-text{color:var(--red)}
+.gmail-panel details{border-top:1px solid var(--line);padding-top:10px}
+.gmail-panel summary{cursor:pointer;font-weight:700;color:var(--navy)}
+@media(max-width:720px){.connection-row{grid-template-columns:1fr}.connection-row .actions{justify-content:flex-start}}
