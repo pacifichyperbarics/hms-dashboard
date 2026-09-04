@@ -1,0 +1,3 @@
+Connectivity login repair deployment marker
+Updated: 2026-09-03 America/Los_Angeles
+Client routes the protected vault through the verified Supabase Edge Function.
