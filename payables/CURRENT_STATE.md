@@ -2,30 +2,48 @@
 
 **Last updated:** 2026-09-03 PT
 
-This file is authoritative for the still-live legacy Monthly Payables app in public repo `pacifichyperbarics/hms-dashboard`. The broader Finance architecture and canonical business logic are authoritative in private repo `pacifichyperbarics/hms-clinic-ops-dashboard`, branch `hms-finance-v1`, file `hms-ai/FINANCE_CURRENT_STATE.md`.
+This file is authoritative for the still-live legacy Monthly Payables app in public repo `pacifichyperbarics/hms-dashboard`. The broader Finance architecture is authoritative in private repo `pacifichyperbarics/hms-clinic-ops-dashboard`, branch `hms-finance-v1`, file `hms-ai/FINANCE_CURRENT_STATE.md`.
 
 ## Current authority and URLs
 
-**Legacy Monthly Payables / Netlify Blob remains the production authority. No cutover has occurred.**
+**Legacy Monthly Payables / Netlify Blob remains authoritative. No cutover has occurred.**
 
 - Legacy Payables: `https://hms-dashboard-v2.netlify.app/payables/`
-- Finance staging: `https://hms-dashboard-v2.netlify.app/hms-finance-staging/`
-- Finance Migration and QC Gate: `https://hms-dashboard-v2.netlify.app/hms-finance-staging/migration.html`
+- Finance workspace: `https://hms-dashboard-v2.netlify.app/hms-finance-staging/`
+- Simple Payables setup: `https://hms-dashboard-v2.netlify.app/hms-finance-staging/migration.html`
+- Workflow guide: `https://hms-dashboard-v2.netlify.app/hms-finance-staging/workflow.html`
 - Device Admin: `https://hms-dashboard-v2.netlify.app/hms-device-access-test/`
-- Netlify site ID: `adc6e7e8-12f2-47b7-a6fd-d7eea25e8746`
 
-Do not retire, overwrite, or silently switch `/payables/` until finance-grade parity passes and a separate controlled cutover is explicitly performed.
+Do not retire or silently switch `/payables/` until the copy is exact and a separate controlled cutover is explicitly approved.
 
 ## Legacy store
 
-Netlify Blob:
-
-- store: `hms-payables`
+- Netlify Blob store: `hms-payables`
 - key: `state-v1`
 
-Legacy functionality includes recurring and one-time payables, month-specific approval checkboxes/amounts, bills versus allocations/transfers, expected/approved/remaining totals, search, review/variable flags, source descriptions, and last-payment evidence where available.
+Legacy functionality includes recurring and one-time payables, month-specific approval checkboxes and amounts, bills versus allocations/transfers, expected/approved/remaining totals, search, review/variable flags, source descriptions, and last-payment evidence.
 
-## Migration compatibility code
+## Simplified setup workflow
+
+The prior setup screen exposed implementation details and was confusing. It has been replaced with four plain-language steps:
+
+1. Browser access
+2. System check
+3. Copy and compare
+4. Switch later only by separate approval
+
+Removed from the user workflow:
+
+- `Persisted months`
+- manual month initialization
+- `Postgres shadow` terminology
+- `parity` terminology except inside optional technical details
+
+The setup service now creates a current-month comparison set in memory without modifying the live Blob merely to manufacture a month record. Normal Finance login/navigation does not start the copy.
+
+The setup page has explicit browser and server timeouts. It must show whether the existing Payables source or the new Finance database failed instead of loading forever or showing only a generic error.
+
+## Setup compatibility code
 
 - `netlify/functions/lib/payables-finance-shadow.mjs`
 - `netlify/functions/payables-finance-sync.mjs`
@@ -33,63 +51,55 @@ Legacy functionality includes recurring and one-time payables, month-specific ap
 - `hms-finance-staging/api.js`
 - `hms-finance-staging/migration.html`
 - `hms-finance-staging/migration.js`
+- `hms-finance-staging/workflow.html`
 
-Current controls:
+Only an enrolled HMS administrator browser can run System Check or Copy and Compare. The first real Mac browser has been enrolled as the initial administrator.
 
-- Only an enrolled HMS admin browser can initialize a migration month or run parity.
-- The first enrolled browser becomes admin deterministically; concurrent first logins cannot create two initial admins.
-- Normal Finance login/navigation never starts migration.
-- The temporary every-minute parity runner was removed.
-- The old secondary shadow-token authorization path and disposable trigger were removed.
-- The gate has an admin-only rollback-safe **Run system QC** action.
-- The migration gate can explicitly initialize the intended legacy month when definitions exist but no monthly run has been persisted.
-- Month initialization creates only an empty monthly work area. It does not approve, pay, copy to Postgres, or change authority.
-- Parity cannot pass with zero expected instances while active legacy definitions exist.
+## What Copy and Compare checks
 
-## Finance-grade parity
-
-`parity.matched=true` requires zero mismatch across:
+The technical comparison still validates:
 
 - payable keys and counts;
 - amount and status;
-- payable kind (`vendor_bill`, `intercompany_transfer`, `capex_commitment`);
+- vendor bill, intercompany transfer, or CAPEX commitment type;
 - account and clinic mapping;
 - recurring-rule linkage;
 - review-required flag;
-- approval/authorization presence and amount;
-- legacy vendor-key set;
-- legacy recurring-rule-key set.
+- approval presence and amount;
+- vendor-key and recurring-rule-key sets.
 
-Even perfect parity displays **“Parity passed — not cut over.”** The sync function never changes authority, deletes the Blob, or moves money.
+Even an exact copy remains **not cut over**. The service never changes authority, deletes the Blob, or moves money.
 
-## Migration safety latch
+## Safety latch
 
-Once any migrated legacy payable reaches `payment_pending`, `paid`, `reconciled`, `posted`, or `cancelled`, further legacy Blob parity sync is blocked. This prevents a later migration rerun from resetting operational Finance state.
+Once a copied legacy payable reaches `payment_pending`, `paid`, `reconciled`, `posted`, or `cancelled`, the setup copy is locked against overwrite. This prevents a later setup rerun from regressing operational Finance state.
 
-## Current migration state
+## Current live state
 
-At the latest review:
+- One allowed administrator browser is enrolled.
+- No authority cutover has occurred.
+- No payment has been initiated by HMS Finance.
+- Legacy Payables remains active and available.
+- A final accepted Copy and Compare result has not yet become the cutover basis.
 
-- enrolled devices: 0
-- migrated legacy vendors/rules/payables: 0
-- authorizations/payments/bank transactions/journals: 0
-- Payables migration sync rows: 0
+## Required next sequence
 
-Therefore no real parity run and no cutover has occurred.
+1. Open the refreshed simple Payables Setup page.
+2. Click **Run system check**.
+3. Click **Copy and compare**.
+4. Review any differences.
+5. Preserve the Blob rollback reference.
+6. Make a separate decision before switching authority.
 
-Required sequence:
+There is no persisted-month or initialize-month step.
 
-1. Open the Finance Migration Gate from the intended administrator browser.
-2. Enter the shared HMS password once. With no existing devices, the first successful browser becomes initial admin.
-3. Click **Run system QC** and confirm all rollback-safe tests pass.
-4. Verify persistent hall-pass and Device Admin behavior.
-5. Select and initialize the intended legacy month if the gate says no monthly instances exist.
-6. Click **Run parity sync**.
-7. Review all mismatch categories and rerun after any mapping correction.
-8. Preserve the legacy Blob rollback reference.
-9. Only then make a separate authority-cutover decision.
+## Operating workflow after setup
 
-## Legacy seed/context retained for parity review
+`Find → Inbox → Review and code → Authorize → Pay/record → Bank confirm → Reconcile → Post → P&L and cash plan`
+
+The subscriptions/cost-reduction scanner is a separate review loop. A savings suggestion does not change accounting until actual spending changes.
+
+## Legacy seed/context retained for review
 
 Recurring groups include ADP payroll/benefits, TMS Billings, clinic rent, Madras equipment, Matheson medical gas, cleaning/laundry, marketing, insurance, telecom/internet, software/subscriptions, utilities, medical supplies, and NerdzToo CAPEX/IT.
 
@@ -118,24 +128,15 @@ August planning references:
 - Laguna materials $400
 - Monterey marketing $1,500
 
-## Finance-system behavior already hardened
+## Finance controls already built
 
-The private Finance system has rollback-tested transactional workflows for:
+The private Finance system has rollback-tested transactional workflows for intake promotion, manual and bounded automatic authorization, record-only payment intent, external payment confirmation, bank reconciliation, balanced accounting posting, ledger immutability, and controlled reversals.
 
-- intake promotion;
-- manual checkbox authorization/revocation;
-- bounded automatic authorization with verified, unchanged payment destination;
-- record-only payment intent and external-payment confirmation;
-- bank reconciliation and accounting posting;
-- posted journal header/line immutability and controlled reversals.
-
-Repeated promotion, authorization, or payment-record clicks are idempotent where appropriate. The current adapters remain record-only. HMS cannot transmit money through them.
+The current adapters remain record-only. HMS cannot transmit money through them.
 
 ## Email/discovery direction
 
-Legacy parser `netlify/functions/payables-email.mjs` remains compatibility-only. Its secret must never be exposed.
-
-After parity stability, connect durable `hms@healtho2.com`/Gmail discovery to `hms-finance-intake`, preserving message/thread IDs, attachments/support links, source account, source hash, stable source identity, and review-before-payable behavior. Do not deepen the legacy parser unless compatibility requires it.
+The legacy parser `netlify/functions/payables-email.mjs` remains compatibility-only. After setup stability, durable `hms@healtho2.com`/Gmail discovery should feed `hms-finance-intake` while preserving message/thread IDs, attachments, source account, source hash, stable identity, and review-before-payable behavior.
 
 ## Deployment hygiene
 
@@ -145,20 +146,8 @@ Pinned dependencies:
 - `@netlify/edge-functions` 4.0.0
 - `@netlify/functions` 6.0.0
 
-Reviewed deployments are ready, no scheduled Payables migration job remains, and Netlify secret scanning reports no matches. A generated package lock remains desirable when an npm-capable environment is available; do not hand-author it.
-
-## Operating rules
-
-1. Legacy Blob remains authority until explicit cutover.
-2. Preserve source and payment evidence.
-3. Variable/invoice-driven items require review.
-4. Vendor AP stays separate from distributions/intercompany transfers.
-5. Approval does not imply payment.
-6. Discovery or approval does not imply accounting posting.
-7. Do not disturb unrelated HMS routes.
-8. QC before changing authority or reporting cutover success.
-9. Keep `/payables/` available as rollback/compatibility until the new system is proven.
+No scheduled Payables migration job remains. Reviewed deployments are ready and secret scanning reports no matches.
 
 ## New-chat starter
 
-> Continue HMS Payables / Finance. Read `payables/CURRENT_STATE.md` from `master` of `pacifichyperbarics/hms-dashboard`, then `hms-ai/FINANCE_CURRENT_STATE.md` from branch `hms-finance-v1` of private repo `pacifichyperbarics/hms-clinic-ops-dashboard`. Treat the private Finance handoff as architecture authority and this file as the live legacy Blob authority. The current blocking gate is first admin-browser enrollment, rollback-safe system QC, optional explicit legacy-month initialization, and finance-grade parity at `/hms-finance-staging/migration.html`. Normal login must not run migration. Do not cut over `/payables/` until parity is proven and rollback readiness is preserved.
+> Continue HMS Payables / Finance. Read `payables/CURRENT_STATE.md` from `master` of `pacifichyperbarics/hms-dashboard`, then `hms-ai/FINANCE_CURRENT_STATE.md` from branch `hms-finance-v1` of private repo `pacifichyperbarics/hms-clinic-ops-dashboard`. Treat the private Finance handoff as architecture authority and this file as the live legacy Blob authority. The setup screen is now plain-language: browser access, system check, copy and compare, then a separate switch decision. There is no persisted-month step. Legacy Payables remains authoritative until an exact comparison and explicit cutover.
