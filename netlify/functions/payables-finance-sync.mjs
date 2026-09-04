@@ -5,7 +5,8 @@ import { syncPayablesToFinance } from './lib/payables-finance-shadow.mjs';
 const STORE_NAME = 'hms-payables';
 const STATE_KEY = 'state-v1';
 const REQUEST_TIMEOUT_MS = 10000;
-const PROTECTED_STATUSES = new Set(['payment_pending','paid','reconciled','posted','cancelled']);
+const SYNC_TIMEOUT_MS = 25000;
+const PROTECTED_STATUSES = new Set(['payment_pending', 'paid', 'reconciled', 'posted', 'cancelled']);
 
 function env(name) {
   try { return Netlify.env.get(name) || ''; } catch { return process.env[name] || ''; }
@@ -14,17 +15,15 @@ function env(name) {
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+    },
   });
 }
 
 function monthKey(date = new Date()) {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
-}
-
-function validMonth(value) {
-  const text = String(value || '').trim();
-  return /^\d{4}-(0[1-9]|1[0-2])$/.test(text) ? text : null;
 }
 
 function errorMessage(error) {
@@ -48,8 +47,7 @@ async function withTimeout(promise, label, timeoutMs = REQUEST_TIMEOUT_MS) {
 function supabaseConfig() {
   const url = env('SUPABASE_URL').replace(/\/$/, '');
   const key = env('SUPABASE_SERVICE_KEY') || env('SUPABASE_SERVICE_ROLE_KEY');
-  if (!url || !key) return null;
-  return { url, key };
+  return url && key ? { url, key } : null;
 }
 
 async function rest(config, path, { method = 'GET', body, prefer = '' } = {}) {
@@ -87,6 +85,7 @@ async function rest(config, path, { method = 'GET', body, prefer = '' } = {}) {
 }
 
 async function audit(config, action, metadata = {}) {
+  if (!config) return;
   try {
     await rest(config, 'hms_audit_log', {
       method: 'POST',
@@ -94,153 +93,186 @@ async function audit(config, action, metadata = {}) {
       body: {
         capability_id: 'finance.payables',
         action,
-        entity_type: 'payables_migration',
+        entity_type: 'payables_setup',
         metadata,
       },
     });
   } catch (error) {
-    console.error('Payables migration audit failed', errorMessage(error));
+    console.error('Payables setup audit failed', errorMessage(error));
   }
 }
 
 async function adminDeviceAuthorized(req) {
   const token = String(req.headers.get('x-hms-device-token') || '').trim();
   if (!token) return false;
+
   const config = supabaseConfig();
-  if (!config) return false;
+  if (!config) throw new Error('supabase_not_configured');
+
   const hash = createHash('sha256').update(token).digest('hex');
-  const query = new URLSearchParams({
-    select: 'id,device_id,expires_at,revoked_at,hms_devices!inner(id,allowed,is_admin)',
+  const sessionQuery = new URLSearchParams({
+    select: 'id,device_id,expires_at,revoked_at',
     token_hash: `eq.${hash}`,
     limit: '1',
   });
-  const rows = await rest(config, `hms_device_sessions?${query}`);
-  const session = rows?.[0];
+  const sessions = await rest(config, `hms_device_sessions?${sessionQuery}`);
+  const session = sessions?.[0];
   if (!session || session.revoked_at) return false;
   if (session.expires_at && session.expires_at <= new Date().toISOString()) return false;
-  const device = Array.isArray(session.hms_devices) ? session.hms_devices[0] : session.hms_devices;
+
+  const deviceQuery = new URLSearchParams({
+    select: 'id,allowed,is_admin',
+    id: `eq.${session.device_id}`,
+    limit: '1',
+  });
+  const devices = await rest(config, `hms_devices?${deviceQuery}`);
+  const device = devices?.[0];
   return Boolean(device?.allowed && device?.is_admin);
 }
 
-function summarizeSource(state) {
+function prepareSource(state, selectedMonth = monthKey()) {
   if (!state || !Array.isArray(state.items)) {
     return {
-      readable: false,
-      items: 0,
-      activeItems: 0,
-      runs: 0,
-      instances: 0,
-      months: [],
-      readyForParity: false,
-      readinessReason: 'source_state_missing',
-      updatedAt: null,
+      state: null,
+      summary: {
+        readable: false,
+        selectedMonth,
+        recurringItems: 0,
+        oneTimeItems: 0,
+        selectedItems: 0,
+        storedMonths: 0,
+        totalItemsToCompare: 0,
+        ready: false,
+        updatedAt: null,
+        error: 'legacy_payables_state_missing',
+      },
     };
   }
 
-  const activeItems = state.items.filter((item) => item?.active !== false).length;
-  const months = Object.entries(state.runs || {})
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([month, run]) => {
-      const oneTimeItems = Array.isArray(run?.oneTimeItems) ? run.oneTimeItems.length : 0;
-      const approvals = run?.approvals && typeof run.approvals === 'object'
+  const activeItems = state.items.filter((item) => item?.active !== false);
+  const originalRuns = state.runs && typeof state.runs === 'object' ? state.runs : {};
+  const selectedRun = originalRuns[selectedMonth] || {
+    month: selectedMonth,
+    approvals: {},
+    oneTimeItems: [],
+    virtualForSetup: true,
+  };
+
+  // The setup copy is created in memory. It does not modify the live Blob merely to
+  // manufacture a month record. Existing stored months remain part of the comparison.
+  const migrationState = {
+    ...state,
+    runs: {
+      ...originalRuns,
+      [selectedMonth]: selectedRun,
+    },
+  };
+
+  const monthRows = Object.entries(migrationState.runs).map(([month, run]) => {
+    const oneTimeItems = Array.isArray(run?.oneTimeItems) ? run.oneTimeItems.length : 0;
+    return {
+      month,
+      recurringItems: activeItems.length,
+      oneTimeItems,
+      approvals: run?.approvals && typeof run.approvals === 'object'
         ? Object.keys(run.approvals).length
-        : 0;
-      return {
-        month,
-        recurringItems: activeItems,
-        oneTimeItems,
-        approvals,
-        instances: activeItems + oneTimeItems,
-      };
-    });
-  const instances = months.reduce((sum, row) => sum + row.instances, 0);
-  const readyForParity = activeItems === 0 || instances > 0;
+        : 0,
+      instances: activeItems.length + oneTimeItems,
+    };
+  });
+  const selected = monthRows.find((row) => row.month === selectedMonth) || {
+    recurringItems: activeItems.length,
+    oneTimeItems: 0,
+    instances: activeItems.length,
+  };
 
   return {
-    readable: true,
-    items: state.items.length,
-    activeItems,
-    runs: months.length,
-    instances,
-    months,
-    readyForParity,
-    readinessReason: readyForParity ? null : 'legacy_payables_no_persisted_month_runs',
-    updatedAt: state.updatedAt || null,
+    state: migrationState,
+    summary: {
+      readable: true,
+      selectedMonth,
+      recurringItems: selected.recurringItems,
+      oneTimeItems: selected.oneTimeItems,
+      selectedItems: selected.instances,
+      storedMonths: Object.keys(originalRuns).length,
+      totalItemsToCompare: monthRows.reduce((sum, row) => sum + row.instances, 0),
+      ready: selected.instances > 0,
+      updatedAt: state.updatedAt || null,
+      error: null,
+    },
   };
 }
 
-async function sourceSnapshot() {
-  // Match the exact store-opening pattern used by the live, working Payables function.
+async function sourceSnapshot(selectedMonth = monthKey()) {
   const store = getStore(STORE_NAME);
   const state = await withTimeout(
     store.get(STATE_KEY, { type: 'json' }),
     'legacy_blob_read',
   );
-  return { store, state, source: summarizeSource(state) };
-}
-
-async function initializeSourceMonth(month) {
-  const snapshot = await sourceSnapshot();
-  if (!snapshot.source.readable) return { ok: false, error: 'Payables state not found' };
-  const state = snapshot.state;
-  state.runs = state.runs && typeof state.runs === 'object' ? state.runs : {};
-  const existed = Boolean(state.runs[month]);
-  if (!existed) {
-    const now = new Date().toISOString();
-    state.runs[month] = { month, approvals: {}, createdAt: now, updatedAt: now };
-    state.updatedAt = now;
-    await withTimeout(snapshot.store.setJSON(STATE_KEY, state), 'legacy_blob_write');
-  }
-  return { ok: true, initialized: !existed, month, source: summarizeSource(state) };
+  const prepared = prepareSource(state, selectedMonth);
+  return { store, ...prepared };
 }
 
 async function databaseStatus() {
   const config = supabaseConfig();
-  if (!config) return { configured: false, error: 'supabase_not_configured' };
-  const [syncRows, vendors, rules, payables, authorizations] = await Promise.all([
-    rest(config, 'hms_sync_state?select=connector,source_account,last_source_timestamp,last_attempt_at,last_success_at,status,error_text,stats&connector=eq.payables_blob&source_account=eq.hms-payables%2Fstate-v1&limit=1'),
-    rest(config, 'hms_finance_vendors?select=id&vendor_key=like.legacy-payables%3A*'),
-    rest(config, 'hms_finance_recurring_rules?select=id&external_key=like.legacy-payables-rule%3A*'),
-    rest(config, 'hms_finance_payables?select=id,status&source_type=eq.legacy_payables_blob'),
-    rest(config, 'hms_finance_authorizations?select=id,metadata&status=eq.authorized'),
+  if (!config) throw new Error('supabase_not_configured');
+
+  const syncQuery = new URLSearchParams({
+    select: 'connector,source_account,last_attempt_at,last_success_at,status,error_text,stats',
+    connector: 'eq.payables_blob',
+    source_account: 'eq.hms-payables/state-v1',
+    limit: '1',
+  });
+
+  const [syncRows, allVendors, allRules, allPayables, allAuthorizations] = await Promise.all([
+    rest(config, `hms_sync_state?${syncQuery}`),
+    rest(config, 'hms_finance_vendors?select=id,vendor_key'),
+    rest(config, 'hms_finance_recurring_rules?select=id,external_key'),
+    rest(config, 'hms_finance_payables?select=id,status,source_type'),
+    rest(config, 'hms_finance_authorizations?select=id,status,metadata'),
   ]);
+
+  const vendors = allVendors.filter((row) => String(row.vendor_key || '').startsWith('legacy-payables:'));
+  const rules = allRules.filter((row) => String(row.external_key || '').startsWith('legacy-payables-rule:'));
+  const payables = allPayables.filter((row) => row.source_type === 'legacy_payables_blob');
+  const authorizations = allAuthorizations.filter((row) => row.status === 'authorized' && row?.metadata?.shadow_sync === true);
   const sync = syncRows?.[0] || null;
   const parity = sync?.stats?.parity || null;
   const operationalLegacyCount = payables.filter((row) => PROTECTED_STATUSES.has(row.status)).length;
-  const parityHasInstances = Number(parity?.expected || 0) > 0;
+  const hasComparedItems = Number(parity?.expected || 0) > 0;
+
   return {
     configured: true,
     vendors: vendors.length,
     recurringRules: rules.length,
     payables: payables.length,
-    activeAuthorizations: authorizations.filter((row) => row?.metadata?.shadow_sync === true).length,
+    activeAuthorizations: authorizations.length,
     operationalLegacyCount,
     syncLocked: operationalLegacyCount > 0,
     sync,
     parity,
-    parityHasInstances,
-    passed: Boolean(sync?.status === 'success' && parity?.matched === true && parityHasInstances),
+    passed: Boolean(sync?.status === 'success' && parity?.matched === true && hasComparedItems),
   };
 }
 
-async function migrationStatus() {
+async function setupStatus(selectedMonth = monthKey()) {
   const startedAt = Date.now();
   const [sourceResult, databaseResult] = await Promise.allSettled([
-    sourceSnapshot(),
+    sourceSnapshot(selectedMonth),
     databaseStatus(),
   ]);
 
   const source = sourceResult.status === 'fulfilled'
-    ? sourceResult.value.source
+    ? sourceResult.value.summary
     : {
         readable: false,
-        items: 0,
-        activeItems: 0,
-        runs: 0,
-        instances: 0,
-        months: [],
-        readyForParity: false,
-        readinessReason: 'source_status_error',
+        selectedMonth,
+        recurringItems: 0,
+        oneTimeItems: 0,
+        selectedItems: 0,
+        storedMonths: 0,
+        totalItemsToCompare: 0,
+        ready: false,
         updatedAt: null,
         error: errorMessage(sourceResult.reason),
       };
@@ -248,7 +280,7 @@ async function migrationStatus() {
   const database = databaseResult.status === 'fulfilled'
     ? databaseResult.value
     : {
-        configured: true,
+        configured: false,
         vendors: 0,
         recurringRules: 0,
         payables: 0,
@@ -257,14 +289,13 @@ async function migrationStatus() {
         syncLocked: false,
         sync: null,
         parity: null,
-        parityHasInstances: false,
         passed: false,
         error: errorMessage(databaseResult.reason),
       };
 
   return {
     ok: sourceResult.status === 'fulfilled' && databaseResult.status === 'fulfilled',
-    authority: database.passed ? 'parity_passed_not_cut_over' : 'legacy_blob',
+    authority: database.passed ? 'copy_verified_not_cut_over' : 'legacy_payables',
     source,
     database,
     diagnostics: {
@@ -278,86 +309,82 @@ async function migrationStatus() {
 export default async (req) => {
   if (!['GET', 'POST'].includes(req.method)) return json({ ok: false, error: 'Method not allowed' }, 405);
 
-  let authorized = false;
-  try { authorized = await adminDeviceAuthorized(req); } catch (error) {
-    console.error('Payables migration authorization failed', errorMessage(error));
-    return json({ ok: false, error: 'Migration authorization check failed', detail: errorMessage(error) }, 503);
+  try {
+    const authorized = await adminDeviceAuthorized(req);
+    if (!authorized) return json({ ok: false, error: 'Admin device required' }, 403);
+  } catch (error) {
+    console.error('Payables setup authorization failed', errorMessage(error));
+    return json({
+      ok: false,
+      error: 'Payables setup authorization failed',
+      detail: errorMessage(error),
+    }, 503);
   }
-  if (!authorized) return json({ ok: false, error: 'Admin device required' }, 403);
 
+  const selectedMonth = monthKey();
   const config = supabaseConfig();
+
   try {
     if (req.method === 'GET') {
-      // Status is informational. Return a readable payload even if one source is down,
-      // so the page can identify the failed component instead of hanging or showing a
-      // generic migration error.
-      return json(await migrationStatus());
+      // Status is informational. Return component-level errors in the body so the UI
+      // remains understandable instead of collapsing to a generic loading failure.
+      return json(await setupStatus(selectedMonth));
     }
 
     const body = await req.json().catch(() => ({}));
-    const action = String(body.action || 'sync').trim();
+    const action = String(body.action || 'copy-and-compare').trim();
+    if (action !== 'copy-and-compare') return json({ ok: false, error: 'Unknown action' }, 400);
+
     const before = await databaseStatus();
     if (before.syncLocked) {
       return json({
         ok: false,
-        error: 'migration_locked_after_finance_activity',
-        detail: `${before.operationalLegacyCount} migrated legacy payable(s) have entered payment/reconciliation/posting state. Parity sync is locked to prevent status regression.`,
+        error: 'setup_locked_after_finance_activity',
+        detail: 'The copied records have already entered payment or accounting workflow, so the setup copy is locked against regression.',
         database: before,
       }, 409);
     }
 
-    if (action === 'initialize-month') {
-      const month = validMonth(body.month) || monthKey();
-      const initialized = await initializeSourceMonth(month);
-      if (!initialized.ok) return json({ ok: false, error: initialized.error }, 404);
-      if (config) await audit(config, initialized.initialized ? 'legacy_payables_month_initialized' : 'legacy_payables_month_already_initialized', { month });
-      return json({ ok: true, authority: 'legacy_blob', ...initialized, database: before });
+    const snapshot = await sourceSnapshot(selectedMonth);
+    if (!snapshot.summary.readable) {
+      return json({ ok: false, error: 'Existing Payables data could not be read' }, 503);
+    }
+    if (!snapshot.summary.ready || !snapshot.state) {
+      return json({ ok: false, error: 'No Payables items found to copy' }, 409);
     }
 
-    if (action !== 'sync') return json({ ok: false, error: 'Unknown action' }, 400);
-
-    const snapshot = await sourceSnapshot();
-    if (!snapshot.source.readable) return json({ ok: false, error: 'Payables state not found' }, 404);
-    if (!snapshot.source.readyForParity) {
-      return json({
-        ok: false,
-        error: 'legacy_payables_no_persisted_month_runs',
-        detail: 'Legacy Payables contains recurring definitions but no persisted monthly run. Initialize the intended month before running parity.',
-        source: snapshot.source,
-        database: before,
-      }, 409);
-    }
-
-    if (config) await audit(config, 'payables_parity_started', {
-      sourceItems: snapshot.source.items,
-      sourceRuns: snapshot.source.runs,
-      sourceInstances: snapshot.source.instances,
+    await audit(config, 'payables_setup_copy_started', {
+      month: selectedMonth,
+      currentMonthItems: snapshot.summary.selectedItems,
+      totalItemsToCompare: snapshot.summary.totalItemsToCompare,
     });
 
     const stats = await withTimeout(
       syncPayablesToFinance(snapshot.state),
-      'legacy_parity_sync',
-      25000,
+      'payables_copy_and_compare',
+      SYNC_TIMEOUT_MS,
     );
     const database = await databaseStatus();
-    if (config) await audit(config, database.passed ? 'payables_parity_passed' : 'payables_parity_mismatch', {
+
+    await audit(config, database.passed ? 'payables_setup_copy_verified' : 'payables_setup_copy_mismatch', {
+      month: selectedMonth,
       parity: database.parity,
-      sourceRuns: snapshot.source.runs,
     });
+
     return json({
       ok: true,
-      stats,
-      source: snapshot.source,
+      authority: database.passed ? 'copy_verified_not_cut_over' : 'legacy_payables',
+      source: snapshot.summary,
       database,
-      authority: database.passed ? 'parity_passed_not_cut_over' : 'legacy_blob',
+      stats,
     });
   } catch (error) {
     const message = errorMessage(error);
-    if (config) await audit(config, 'payables_parity_failed', { message: message.slice(0, 500) });
-    console.error('Payables finance sync failed', message);
+    await audit(config, 'payables_setup_failed', { message: message.slice(0, 500) });
+    console.error('Payables setup failed', message);
     return json({
       ok: false,
-      error: req.method === 'GET' ? 'Payables migration status failed' : 'Payables finance sync failed',
+      error: 'Payables setup failed',
       detail: message,
     }, 500);
   }
