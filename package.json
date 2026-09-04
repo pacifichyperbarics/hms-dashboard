@@ -2,6 +2,9 @@
   "name": "hms-dashboard",
   "private": true,
   "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
   "dependencies": {
     "@netlify/blobs": "11.0.3",
     "@netlify/edge-functions": "4.0.0",
