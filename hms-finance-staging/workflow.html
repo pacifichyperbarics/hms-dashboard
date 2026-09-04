@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HMS Payables Workflow</title>
+<link rel="stylesheet" href="./app.css">
+<style>
+.guide{max-width:1120px;margin:0 auto}.toplinks{display:flex;gap:8px;flex-wrap:wrap}.toplinks a{text-decoration:none}.rule{border-left:5px solid #26734d;background:#edf8f2;padding:14px 16px;border-radius:8px;margin:14px 0;line-height:1.45}.lane{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;align-items:stretch;margin-top:14px}.node{position:relative;border:1px solid #d7dfe6;border-radius:12px;padding:14px;background:#fff;min-height:136px}.node:not(:last-child)::after{content:'→';position:absolute;right:-17px;top:48px;z-index:2;font-size:23px;color:#6c7882}.node .n{display:inline-block;width:25px;height:25px;border-radius:50%;line-height:25px;text-align:center;background:#eef2f5;font-weight:800;margin-bottom:8px}.node strong{display:block;font-size:15px;margin-bottom:6px}.node p{margin:0;color:#66727d;font-size:12px;line-height:1.42}.node.primary{border-color:#86bfa2;background:#f4fbf7}.node.warn{border-color:#dcc887;background:#fffaf0}.split{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.mini .node{min-height:112px}.mini .node:not(:last-child)::after{top:40px}.state{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:12px}.pill{padding:10px 7px;border:1px solid #d7dfe6;border-radius:10px;text-align:center;background:#fff;font-size:12px;font-weight:750}.arrowline{text-align:center;color:#6c7882;letter-spacing:7px;margin:7px 0}.definitions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.definition{border:1px solid #d7dfe6;border-radius:10px;padding:12px;background:#fff}.definition strong{display:block;margin-bottom:4px}.definition span{color:#66727d;font-size:13px}.loop{border:1px dashed #9aa8b3;border-radius:12px;padding:14px;background:#fbfcfd}.footer-note{font-size:13px;color:#66727d;margin-top:14px}@media(max-width:900px){.lane{grid-template-columns:1fr}.node:not(:last-child)::after{content:'↓';right:auto;left:50%;top:auto;bottom:-23px}.split{grid-template-columns:1fr}.state{grid-template-columns:1fr 1fr}.mini{grid-template-columns:1fr}.mini .node:not(:last-child)::after{top:auto}.definitions{grid-template-columns:1fr}}@media(max-width:480px){.state{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="shell guide">
+  <div class="top">
+    <div><div class="eyebrow">Hyperbaric Management Services</div><h1>How Payables Works</h1><div class="muted">One understandable path from a possible bill to cash planning and the P&amp;L</div></div>
+    <div class="toplinks"><a class="btn" href="/hms-finance-staging/">Finance</a><a class="btn" href="/hms-finance-staging/migration.html">Setup</a><a class="btn" href="/payables/">Current Payables</a></div>
+  </div>
+
+  <div class="rule"><strong>The central rule:</strong> finding a bill, approving a bill, paying a bill, and posting an expense are four different events. The system records each one separately so the P&amp;L never relies on a checkbox or an assumption.</div>
+
+  <section class="panel">
+    <h2>Daily operating workflow</h2>
+    <div class="lane">
+      <div class="node"><span class="n">1</span><strong>Find</strong><p>Email, upload, manual entry, recurring schedule, vendor notice, or bank activity identifies something that may need attention.</p></div>
+      <div class="node primary"><span class="n">2</span><strong>Inbox</strong><p>The item lands in one place. It is not yet approved, paid, or posted. Duplicates and missing information are flagged.</p></div>
+      <div class="node"><span class="n">3</span><strong>Review and code</strong><p>Confirm vendor, amount, due date, invoice, clinic, category, supporting document, and how the vendor is normally paid.</p></div>
+      <div class="node warn"><span class="n">4</span><strong>Authorize</strong><p>Michael checks the box, or an approved automatic rule passes its amount and destination limits. Authorization still does not move money.</p></div>
+      <div class="node"><span class="n">5</span><strong>Pay and verify</strong><p>The payment recipe gives the method. A bank withdrawal later confirms what actually happened.</p></div>
+    </div>
+
+    <div class="arrowline">↓</div>
+
+    <div class="lane" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+      <div class="node primary"><span class="n">6</span><strong>Reconcile</strong><p>Match the bank transaction to the payable. Split, combined, timing, reversal, and unmatched cases go to review.</p></div>
+      <div class="node"><span class="n">7</span><strong>Post accounting</strong><p>Only a confirmed, coded reconciliation creates a balanced journal entry. Posted accounting cannot be silently edited.</p></div>
+      <div class="node"><span class="n">8</span><strong>P&amp;L</strong><p>The P&amp;L reads posted journal lines. It does not read an Inbox item or an approval checkbox.</p></div>
+      <div class="node primary"><span class="n">9</span><strong>Cash requirements</strong><p>Open bills, approved bills, payroll, CAPEX, transfers, expected receipts, and current cash create the forward cash plan.</p></div>
+    </div>
+  </section>
+
+  <div class="split spaced">
+    <section class="panel">
+      <h2>Simple status path</h2>
+      <div class="state">
+        <div class="pill">Found</div><div class="pill">Review</div><div class="pill">Ready</div><div class="pill">Authorized</div><div class="pill">Payment pending</div><div class="pill">Bank confirmed</div><div class="pill">Posted</div>
+      </div>
+      <p class="footer-note">An exception can pause the item at any point without deleting its history.</p>
+    </section>
+
+    <section class="panel loop">
+      <h2>Cost-reduction loop</h2>
+      <p>Subscriptions and recurring spend are scanned separately for cancellation, reduction, consolidation, annual-billing savings, price increases, unused seats, and negotiation opportunities.</p>
+      <p><strong>A savings suggestion is not an accounting entry.</strong> The forecast may show expected savings, but the P&amp;L changes only after actual spending changes.</p>
+    </section>
+  </div>
+
+  <section class="panel spaced">
+    <h2>What the important actions mean</h2>
+    <div class="definitions">
+      <div class="definition"><strong>Add to Inbox</strong><span>“This might be a bill. Please review it.” Nothing is authorized.</span></div>
+      <div class="definition"><strong>Authorize checkbox</strong><span>“This bill may be paid.” It does not mean the payment happened.</span></div>
+      <div class="definition"><strong>Automatic</strong><span>“Approve only when the known vendor, normal amount range, and verified payment destination all match.”</span></div>
+      <div class="definition"><strong>Bank confirmed</strong><span>“The money actually left the account.” This is the evidence used for reconciliation.</span></div>
+      <div class="definition"><strong>Posted</strong><span>“The balanced accounting entry is now part of the P&amp;L.”</span></div>
+      <div class="definition"><strong>Hold / exception</strong><span>“Do not proceed until duplicate, coding, invoice, amount, or payment-instruction questions are resolved.”</span></div>
+    </div>
+  </section>
+
+  <section class="panel spaced">
+    <h2>One-time setup is separate</h2>
+    <div class="mini">
+      <div class="node"><span class="n">1</span><strong>Read current Payables</strong><p>The existing Netlify list remains in control.</p></div>
+      <div class="node"><span class="n">2</span><strong>Copy and compare</strong><p>Check every amount, clinic, category, type, rule, and approval.</p></div>
+      <div class="node warn"><span class="n">3</span><strong>Switch only later</strong><p>An exact comparison still requires a separate controlled cutover decision.</p></div>
+    </div>
+  </section>
+</main>
+</body>
+</html>
