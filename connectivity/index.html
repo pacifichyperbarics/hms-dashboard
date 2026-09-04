@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="no-referrer" />
+  <title>HMS Connectivity</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">Hyperbaric Management Services</div>
+        <h1>Connectivity</h1>
+        <p class="subtitle">Email, messaging, AI, and SaaS account directory</p>
+      </div>
+      <div class="session-actions">
+        <span id="deviceState" class="device-state">Checking access</span>
+        <button id="logout" class="text-button" type="button" hidden>Sign out</button>
+      </div>
+    </header>
+
+    <section id="loginPanel" class="login-panel" hidden>
+      <div class="login-card">
+        <div class="eyebrow">HMS access</div>
+        <h2>Open Connectivity</h2>
+        <p>Use the same access password as the HMS Payables tool. This browser will remain authorized.</p>
+        <form id="loginForm">
+          <label for="password">Access password</label>
+          <div class="login-row">
+            <input id="password" name="password" type="password" autocomplete="current-password" required autofocus />
+            <button type="submit">Open tool</button>
+          </div>
+          <p id="loginStatus" class="form-status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <section id="workspace" hidden>
+      <section class="metrics" aria-label="Connectivity summary">
+        <article><strong id="metricTotal">0</strong><span>Accounts</span></article>
+        <article><strong id="metricConnected">0</strong><span>Connected</span></article>
+        <article><strong id="metricSecrets">0</strong><span>Passwords stored</span></article>
+        <article><strong id="metricIncomplete">0</strong><span>Need details</span></article>
+      </section>
+
+      <section class="toolbar panel">
+        <div class="toolbar-title">
+          <h2>Accounts and channels</h2>
+          <p id="lastChecked">Loading account directory</p>
+        </div>
+        <div class="toolbar-controls">
+          <input id="search" type="search" placeholder="Search service or login" aria-label="Search accounts" />
+          <select id="categoryFilter" aria-label="Filter by category">
+            <option value="all">All categories</option>
+            <option value="email">Email</option>
+            <option value="text">Text</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="ai">AI platforms</option>
+            <option value="saas">SaaS apps</option>
+            <option value="other">Other</option>
+          </select>
+          <select id="statusFilter" aria-label="Filter by status">
+            <option value="all">All statuses</option>
+            <option value="connected">Connected</option>
+            <option value="needs_details">Needs details</option>
+            <option value="needs_verification">Needs verification</option>
+            <option value="disabled">Disabled</option>
+          </select>
+          <button id="addAccount" type="button">Add account</button>
+        </div>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Service</th>
+                <th>Category</th>
+                <th>Login ID</th>
+                <th>Password / access</th>
+                <th>Status</th>
+                <th>Verified</th>
+                <th class="actions-heading">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="accountRows"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" class="empty-state" hidden>No accounts match this view.</div>
+      </section>
+
+      <p class="footnote">Passwords are encrypted before database storage and remain masked until explicitly revealed. Login IDs, notes, and password controls are available only to an HMS administrator browser.</p>
+    </section>
+  </main>
+
+  <dialog id="accountDialog">
+    <form id="accountForm" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <div class="eyebrow">Account record</div>
+          <h2 id="dialogTitle">Add account</h2>
+        </div>
+        <button id="closeDialog" type="button" class="icon-button" aria-label="Close">Close</button>
+      </div>
+
+      <input id="accountId" type="hidden" />
+      <div class="form-grid">
+        <label class="wide">Service name
+          <input id="serviceName" required maxlength="200" />
+        </label>
+        <label>Category
+          <select id="category" required>
+            <option value="email">Email</option>
+            <option value="text">Text</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="ai">AI platform</option>
+            <option value="saas" selected>SaaS app</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>Status
+          <select id="status" required>
+            <option value="connected">Connected</option>
+            <option value="needs_details" selected>Needs details</option>
+            <option value="needs_verification">Needs verification</option>
+            <option value="disabled">Disabled</option>
+          </select>
+        </label>
+        <label>Login ID
+          <input id="loginId" maxlength="300" autocomplete="username" />
+        </label>
+        <label>Owner / account label
+          <input id="ownerLabel" maxlength="200" placeholder="HMS owner, billing admin, etc." />
+        </label>
+        <label class="wide">Login URL
+          <input id="loginUrl" type="url" maxlength="1000" placeholder="https://" />
+        </label>
+        <label>Access method
+          <select id="authMethod">
+            <option value="password">Password</option>
+            <option value="google_sso">Google sign-in</option>
+            <option value="microsoft_sso">Microsoft sign-in</option>
+            <option value="apple_sso">Apple sign-in</option>
+            <option value="phone_code">Phone code</option>
+            <option value="oauth">OAuth connection</option>
+            <option value="api_key">API key</option>
+            <option value="passkey">Passkey</option>
+            <option value="none">No password</option>
+            <option value="unknown" selected>Unknown</option>
+          </select>
+        </label>
+        <label>Password or secret
+          <input id="secret" type="password" maxlength="2000" autocomplete="new-password" placeholder="Leave blank to keep current" />
+        </label>
+        <label class="wide">Password hint
+          <input id="passwordHint" maxlength="300" placeholder="Optional reminder that does not disclose the password" />
+        </label>
+        <label class="wide">Notes
+          <textarea id="notes" rows="4" maxlength="2000"></textarea>
+        </label>
+      </div>
+
+      <div class="dialog-options">
+        <label><input id="markVerified" type="checkbox" /> Mark verified today</label>
+        <label><input id="clearSecret" type="checkbox" /> Remove stored password or secret</label>
+      </div>
+
+      <p id="formStatus" class="form-status" aria-live="polite"></p>
+      <div class="dialog-actions">
+        <button id="archiveAccount" type="button" class="danger-button" hidden>Remove account</button>
+        <span class="dialog-spacer"></span>
+        <button id="cancelDialog" type="button" class="secondary-button">Cancel</button>
+        <button id="saveAccount" type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="./api.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
