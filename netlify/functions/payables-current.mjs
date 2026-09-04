@@ -130,7 +130,8 @@ export default async (req) => {
     if (!device) return json({ error: req.method === 'POST' ? 'admin_device_required' : 'device_session_required' }, req.method === 'POST' ? 403 : 401);
 
     const url = new URL(req.url);
-    const month = validMonth(url.searchParams.get('month'));
+    const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
+    const month = validMonth(url.searchParams.get('month') || body.month);
     const { store, state } = await readState();
     state.runs = state.runs && typeof state.runs === 'object' ? state.runs : {};
     const run = virtualRun(state, month);
@@ -140,7 +141,6 @@ export default async (req) => {
       return json({ ok: true, month, items, summary: summarize(items), device: { id: device.id, isAdmin: device.isAdmin } });
     }
 
-    const body = await req.json().catch(() => ({}));
     const action = clean(body.action, 50);
     const id = clean(body.id, 160);
     if (!id) return json({ error: 'id_required' }, 400);
