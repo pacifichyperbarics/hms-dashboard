@@ -1,24 +1,39 @@
 (() => {
-  const authEndpoint = 'https://sojtoyybfolcxezkppxc.supabase.co/functions/v1/hms-device-auth';
-  const vaultEndpoint = '/.netlify/functions/connectivity-vault';
+  const base = 'https://sojtoyybfolcxezkppxc.supabase.co/functions/v1';
+  const authEndpoint = `${base}/hms-device-auth`;
+  const vaultEndpoint = `${base}/hms-connectivity-vault`;
   const TOKEN_KEY = 'hms.device.token.v1';
   const DEVICE_KEY = 'hms.device.id.v1';
+  let memoryToken = '';
+  let memoryDeviceId = '';
 
   function token() {
-    try { return localStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; }
+    try { return localStorage.getItem(TOKEN_KEY) || memoryToken; } catch { return memoryToken; }
   }
 
   function deviceId() {
-    try { return localStorage.getItem(DEVICE_KEY) || ''; } catch { return ''; }
+    try { return localStorage.getItem(DEVICE_KEY) || memoryDeviceId; } catch { return memoryDeviceId; }
   }
 
   function saveSession(result) {
-    localStorage.setItem(TOKEN_KEY, result.token);
-    localStorage.setItem(DEVICE_KEY, result.device.id);
+    if (!result?.token || !result?.device?.id) throw new Error('invalid_login_response');
+    memoryToken = result.token;
+    memoryDeviceId = result.device.id;
+    try {
+      localStorage.setItem(TOKEN_KEY, result.token);
+      localStorage.setItem(DEVICE_KEY, result.device.id);
+    } catch {
+      // The current page still works when persistent browser storage is unavailable.
+    }
   }
 
   function clearSession() {
-    try { localStorage.removeItem(TOKEN_KEY); } catch {}
+    memoryToken = '';
+    memoryDeviceId = '';
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(DEVICE_KEY);
+    } catch {}
   }
 
   async function request(url, method = 'GET', body, timeoutMs = 20000) {
