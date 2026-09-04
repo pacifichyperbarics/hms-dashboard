@@ -9,6 +9,8 @@
 .connection-row .actions{justify-content:flex-end}
 .compact-empty{padding:16px}
 .danger-text{color:var(--red)}
+.gmail-open-source{text-decoration:none;color:var(--navy);display:inline-flex;align-items:center}
+.gmail-confirm-hms{border-color:#d4b151;background:var(--amberbg);color:var(--amber);font-weight:700}
 .gmail-panel details{border-top:1px solid var(--line);padding-top:10px}
 .gmail-panel summary{cursor:pointer;font-weight:700;color:var(--navy)}
 @media(max-width:720px){.connection-row{grid-template-columns:1fr}.connection-row .actions{justify-content:flex-start}}
