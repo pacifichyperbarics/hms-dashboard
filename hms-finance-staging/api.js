@@ -9,6 +9,7 @@
     optimization: `${base}/hms-finance-optimization`,
     qc: `${base}/hms-finance-qc`,
     currentPayables: '/.netlify/functions/payables-current',
+    gmail: '/api/hms-payables/gmail',
     legacySync: '/.netlify/functions/payables-finance-sync',
   };
   const TOKEN_KEY = 'hms.device.token.v1';
@@ -46,6 +47,8 @@
         error.code = data.error;
         error.status = response.status;
         error.detail = data.detail;
+        error.callbackUrl = data.callbackUrl;
+        error.requiredEnvironmentVariables = data.requiredEnvironmentVariables;
         throw error;
       }
       return data;
