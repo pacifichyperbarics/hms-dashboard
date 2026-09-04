@@ -3,80 +3,85 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HMS Finance Migration Gate</title>
+<title>HMS Payables Setup</title>
 <link rel="stylesheet" href="./app.css">
 <style>
-.gate{max-width:1050px;margin:0 auto}.gate-status{font-size:22px;font-weight:800;margin:5px 0}.gate-status.good{color:#26734d}.gate-status.warn{color:#946200}.gate-status.bad{color:#a23b36}.authority{border-left:5px solid #946200;background:#fff6dc;padding:14px 16px;border-radius:8px;margin:14px 0}.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{border:1px solid #d9e0e7;border-radius:10px;padding:12px;background:#fff}.metric span{display:block;color:#68737d;font-size:11px;font-weight:800;text-transform:uppercase}.metric strong{font-size:24px}.checks{display:grid;grid-template-columns:1fr 1fr;gap:12px}.check{padding:11px;border:1px solid #d9e0e7;border-radius:8px;background:#fff}.check strong{display:block;margin-bottom:3px}.toplinks{display:flex;gap:8px;flex-wrap:wrap}.toplinks a{text-decoration:none}.login{max-width:480px;margin:45px auto}.month-tools{display:flex;align-items:end;gap:8px;flex-wrap:wrap;margin-top:12px}.month-tools label{font-size:11px;font-weight:800;color:#68737d;text-transform:uppercase}.month-tools input{display:block;margin-top:4px;min-height:38px;border:1px solid #c8d2dc;border-radius:8px;padding:7px 9px;background:#fff;font:inherit}.source-months{margin-top:8px;color:#68737d;font-size:12px}.spaced{margin-top:14px}@media(max-width:720px){.metric-grid,.checks{grid-template-columns:1fr 1fr}}@media(max-width:480px){.metric-grid,.checks{grid-template-columns:1fr}.month-tools{display:grid;grid-template-columns:1fr}.month-tools input,.month-tools .btn{width:100%}}
+.setup{max-width:1040px;margin:0 auto}.setup-status{font-size:22px;font-weight:800;margin:5px 0}.setup-status.good{color:#26734d}.setup-status.warn{color:#946200}.setup-status.bad{color:#a23b36}.authority{border-left:5px solid #26734d;background:#edf8f2;padding:14px 16px;border-radius:8px;margin:14px 0}.toplinks{display:flex;gap:8px;flex-wrap:wrap}.toplinks a{text-decoration:none}.login{max-width:480px;margin:45px auto}.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}.step{border:1px solid #d9e0e7;border-radius:10px;padding:13px;background:#fff;min-height:104px}.step-number{display:block;width:25px;height:25px;border-radius:50%;background:#eef2f5;text-align:center;line-height:25px;font-weight:800;margin-bottom:8px}.step strong{display:block}.step span:last-child{display:block;color:#68737d;font-size:12px;margin-top:5px}.step.good{border-color:#8cc2a6;background:#f4fbf7}.step.warn{border-color:#dbc27e;background:#fffaf0}.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;align-items:center;gap:8px;margin-top:12px}.flow-box{border:1px solid #d9e0e7;border-radius:9px;padding:13px;text-align:center;background:#fff}.flow-arrow{font-size:22px;color:#78838d}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{border:1px solid #d9e0e7;border-radius:10px;padding:12px;background:#fff}.metric span{display:block;color:#68737d;font-size:11px;font-weight:800;text-transform:uppercase}.metric strong{font-size:23px}.checks{display:grid;grid-template-columns:1fr 1fr;gap:10px}.check{padding:11px;border:1px solid #d9e0e7;border-radius:8px;background:#fff}.check strong{display:block;margin-bottom:3px}.spaced{margin-top:14px}details{margin-top:14px}summary{cursor:pointer;font-weight:800}.plain-note{font-size:14px;line-height:1.45}.action-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.action-row .btn.primary{font-size:15px;padding:10px 16px}@media(max-width:800px){.steps,.metrics{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr}.flow-arrow{transform:rotate(90deg);text-align:center}}@media(max-width:500px){.steps,.metrics,.checks{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<main class="shell gate">
+<main class="shell setup">
   <div class="top">
-    <div><div class="eyebrow">Hyperbaric Management Services</div><h1>Finance Migration Gate</h1><div class="muted">Legacy Payables → HMS Finance Postgres parity review</div></div>
-    <div class="toplinks"><a class="btn" href="/hms-finance-staging/">Finance</a><a class="btn" href="/payables/">Legacy Payables</a><a class="btn" href="/hms-device-access-test/">Devices</a></div>
+    <div><div class="eyebrow">Hyperbaric Management Services</div><h1>Payables Setup</h1><div class="muted">One-time transfer of the existing Payables list into the new Finance system</div></div>
+    <div class="toplinks"><a class="btn" href="/hms-finance-staging/">Finance</a><a class="btn" href="/payables/">Current Payables</a><a class="btn" href="/hms-device-access-test/">Devices</a></div>
   </div>
 
   <section class="panel login" id="loginPanel" hidden>
-    <h2>HMS access</h2><p>Enter the shared HMS password once on this browser.</p>
+    <h2>HMS access</h2>
+    <p>Enter the shared HMS password once on this browser.</p>
     <form id="loginForm"><div class="field"><label for="password">Password</label><div class="loginrow"><input id="password" type="password" autocomplete="current-password" required><button class="btn primary" type="submit">Continue</button></div></div></form>
-    <div id="loginStatus" class="status"></div>
+    <div id="loginStatus" class="status" aria-live="polite"></div>
   </section>
 
   <div id="workspace" hidden>
-    <div class="authority"><strong>Current authority: Legacy Payables / Netlify Blob.</strong><br>This screen can initialize a monthly legacy work area, run rollback-safe system QC, copy the selected legacy months to the Postgres shadow, and compare the result. It does not switch authority, delete the Blob, or initiate any payment.</div>
+    <div class="authority"><strong>Nothing on this page pays a bill.</strong><br>The current Payables page stays in control. This page only checks the new system, copies the existing list, and confirms that the copy matches.</div>
+
+    <div class="steps" aria-label="Payables setup progress">
+      <div class="step good" id="stepAccess"><span class="step-number">1</span><strong>Browser access</strong><span id="stepAccessText">Connected</span></div>
+      <div class="step" id="stepQc"><span class="step-number">2</span><strong>System check</strong><span id="stepQcText">Not yet run here</span></div>
+      <div class="step" id="stepCopy"><span class="step-number">3</span><strong>Copy and compare</strong><span id="stepCopyText">Checking existing list</span></div>
+      <div class="step warn" id="stepSwitch"><span class="step-number">4</span><strong>Switch later</strong><span id="stepSwitchText">Separate approval required</span></div>
+    </div>
 
     <section class="panel">
-      <div class="section-head"><div><h2>Cutover gate</h2><div class="muted" id="deviceState"></div></div><div class="actions"><button class="btn" id="refresh" type="button">Refresh status</button><button class="btn primary" id="runSync" type="button">Run parity sync</button></div></div>
-      <div id="gateStatus" class="gate-status warn">Not yet verified</div>
-      <div id="statusDetail" class="status">Loading migration status…</div>
-      <div class="month-tools" id="monthTools">
-        <label for="sourceMonth">Legacy month<input id="sourceMonth" type="month"></label>
-        <button class="btn" id="initializeMonth" type="button">Initialize month</button>
+      <h2>What we are doing</h2>
+      <p class="plain-note">We are replacing the temporary Payables storage with the central Finance database. The old system remains available until the copy is exact and a separate switch is approved.</p>
+      <div class="flow" aria-label="Setup workflow">
+        <div class="flow-box"><strong>Current Payables</strong><br><span class="muted">Working list today</span></div><div class="flow-arrow">→</div>
+        <div class="flow-box"><strong>Copy</strong><br><span class="muted">No deletion or payment</span></div><div class="flow-arrow">→</div>
+        <div class="flow-box"><strong>Compare</strong><br><span class="muted">Amounts, clinics, categories, approvals</span></div><div class="flow-arrow">→</div>
+        <div class="flow-box"><strong>Switch later</strong><br><span class="muted">Only after exact match</span></div>
       </div>
-      <div class="source-months" id="sourceMonths">Persisted months: loading…</div>
     </section>
 
     <section class="panel spaced">
-      <div class="section-head"><div><h2>Rollback-safe system QC</h2><div class="muted">Tests accounting signs, promotion, authorization, payment recording, reconciliation, and ledger immutability. Test data is rolled back.</div></div><button class="btn" id="runQc" type="button">Run system QC</button></div>
-      <div id="qcStatus" class="gate-status warn">Not yet run from this interface</div>
-      <div id="qcDetail" class="status">Loading the latest recorded result…</div>
-      <div class="checks spaced">
-        <div class="check"><strong>Core workflows</strong><span id="qcCore">—</span></div>
-        <div class="check"><strong>Posted ledger protection</strong><span id="qcLedger">—</span></div>
-        <div class="check"><strong>Rollback residue</strong><span>QC records are rolled back; only the result is audited.</span></div>
-        <div class="check"><strong>Last recorded run</strong><span id="qcLastRun">Never</span></div>
+      <div class="section-head"><div><h2>1. Check the new Finance system</h2><div class="muted">Runs rollback-safe tests. Test records are removed automatically.</div></div><button class="btn" id="runQc" type="button">Run system check</button></div>
+      <div id="qcStatus" class="setup-status warn">Checking prior result…</div>
+      <div id="qcDetail" class="status">Loading…</div>
+    </section>
+
+    <section class="panel spaced">
+      <div class="section-head"><div><h2>2. Copy the existing Payables list</h2><div class="muted" id="deviceState"></div></div><div class="action-row"><button class="btn" id="refresh" type="button">Refresh</button><button class="btn primary" id="runSync" type="button">Copy and compare</button></div></div>
+      <div id="sourceStatus" class="setup-status warn">Reading existing Payables…</div>
+      <div id="sourceDetail" class="status">Loading…</div>
+      <div class="metrics spaced">
+        <div class="metric"><span>Current month</span><strong id="sourceMonth" style="font-size:17px">—</strong></div>
+        <div class="metric"><span>Recurring items</span><strong id="sourceRecurring">—</strong></div>
+        <div class="metric"><span>One-time items</span><strong id="sourceOneTime">—</strong></div>
+        <div class="metric"><span>Total to compare</span><strong id="sourceTotal">—</strong></div>
       </div>
     </section>
 
-    <h2>Legacy source</h2>
-    <div class="metric-grid">
-      <div class="metric"><span>Payable definitions</span><strong id="sourceItems">—</strong></div>
-      <div class="metric"><span>Monthly runs</span><strong id="sourceRuns">—</strong></div>
-      <div class="metric"><span>Payable instances</span><strong id="sourceInstances">—</strong></div>
-      <div class="metric"><span>Source updated</span><strong id="sourceUpdated" style="font-size:14px">—</strong></div>
-    </div>
+    <section class="panel spaced">
+      <h2>3. Result</h2>
+      <div id="gateStatus" class="setup-status warn">Not copied yet</div>
+      <div id="statusDetail" class="status">The current Payables page remains the active system.</div>
+      <div class="notice spaced"><strong>Switch rule:</strong> an exact copy does not switch systems automatically. The current Payables page remains authoritative until a separate controlled switch is approved.</div>
 
-    <h2>Postgres shadow</h2>
-    <div class="metric-grid">
-      <div class="metric"><span>Legacy vendors</span><strong id="dbVendors">—</strong></div>
-      <div class="metric"><span>Recurring rules</span><strong id="dbRules">—</strong></div>
-      <div class="metric"><span>Payables</span><strong id="dbPayables">—</strong></div>
-      <div class="metric"><span>Active approvals</span><strong id="dbAuth">—</strong></div>
-    </div>
-
-    <h2>Finance-grade parity checks</h2>
-    <div class="checks">
-      <div class="check"><strong>Expected vs actual payables</strong><span id="parityCounts">Not run</span></div>
-      <div class="check"><strong>Total mismatches</strong><span id="parityTotal">—</span></div>
-      <div class="check"><strong>Missing / extra payables</strong><span id="parityRows">—</span></div>
-      <div class="check"><strong>Amount / status</strong><span id="parityMoneyStatus">—</span></div>
-      <div class="check"><strong>Kind / clinic / account / rule / review</strong><span id="parityClassification">—</span></div>
-      <div class="check"><strong>Approval state / amount</strong><span id="parityApproval">—</span></div>
-      <div class="check"><strong>Vendor / recurring-rule sets</strong><span id="parityMasterData">—</span></div>
-      <div class="check"><strong>Last successful sync</strong><span id="lastSuccess">Never</span></div>
-    </div>
-
-    <div class="notice" style="margin-top:16px"><strong>Cutover rule:</strong> parity passing is necessary but not sufficient. Legacy Payables remains authoritative until the controlled authority change is explicitly performed after review and rollback readiness.</div>
+      <details>
+        <summary>Technical comparison details</summary>
+        <div class="checks spaced">
+          <div class="check"><strong>Expected versus copied</strong><span id="parityCounts">Not run</span></div>
+          <div class="check"><strong>Total differences</strong><span id="parityTotal">—</span></div>
+          <div class="check"><strong>Missing / extra</strong><span id="parityRows">—</span></div>
+          <div class="check"><strong>Amount / status</strong><span id="parityMoneyStatus">—</span></div>
+          <div class="check"><strong>Clinic / category / type / rule</strong><span id="parityClassification">—</span></div>
+          <div class="check"><strong>Approval state / amount</strong><span id="parityApproval">—</span></div>
+          <div class="check"><strong>Vendors / recurring rules</strong><span id="parityMasterData">—</span></div>
+          <div class="check"><strong>Last exact comparison</strong><span id="lastSuccess">Never</span></div>
+        </div>
+      </details>
+    </section>
   </div>
 </main>
 <script src="./api.js"></script>
