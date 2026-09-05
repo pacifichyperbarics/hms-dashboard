@@ -1,0 +1,11 @@
+/hms-payables/
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/hms-payables/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/hms-payables/src/*
+  Cache-Control: no-cache, must-revalidate
+
+/hms-payables/assets/*
+  Cache-Control: no-cache, must-revalidate
