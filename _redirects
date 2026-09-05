@@ -1,6 +1,5 @@
 /hms-payables /hms-payables/ 301!
-/hms-payables/gmail /hms-payables/gmail/ 301!
-/hms-payables/gmail/* /hms-finance-staging/:splat 200
-/hms-payables/* /hms-finance-staging/:splat 200
+/hms-payables/gmail /hms-payables/ 302!
+/hms-payables/gmail/* /hms-payables/ 302!
 /ops /index.html 200
 / /actuals.html 200
