@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>HMS Payables</title>
+  <link rel="stylesheet" href="/hms-payables/assets/app.css?v=20260904r1">
+</head>
+<body>
+  <noscript><div class="noscript">HMS Payables requires JavaScript.</div></noscript>
+  <main class="page-shell">
+    <header class="app-header">
+      <div>
+        <div class="eyebrow">Hyperbaric Management Services</div>
+        <h1>HMS Payables</h1>
+        <p>Find bills, review them, authorize payment, and plan cash.</p>
+      </div>
+      <div class="header-meta">
+        <span id="deviceLabel">Not signed in</span>
+        <span id="buildLabel">Build loading</span>
+        <button id="logoutButton" class="button quiet" type="button" hidden>Forget access</button>
+      </div>
+    </header>
+
+    <section id="loginPanel" class="login-panel">
+      <div class="panel login-card">
+        <h2>HMS access</h2>
+        <p>Enter the shared HMS password once on this browser.</p>
+        <form id="loginForm" class="login-form">
+          <label class="field">
+            <span>Password</span>
+            <input id="password" type="password" autocomplete="current-password" required>
+          </label>
+          <button id="loginButton" class="button primary" type="submit">Continue</button>
+        </form>
+        <div id="loginStatus" class="status-text" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="appShell" hidden>
+      <nav class="app-nav" aria-label="Payables sections">
+        <button type="button" data-screen="overview">Overview</button>
+        <button type="button" data-screen="inbox">Inbox</button>
+        <button type="button" data-screen="payables">Payables</button>
+        <button type="button" data-screen="cash">Cash Plan</button>
+        <button type="button" data-screen="system">System</button>
+      </nav>
+
+      <div class="safety-banner">
+        <strong>Operating rule:</strong> finding a bill does not authorize it, and authorization does not mean payment was sent.
+      </div>
+      <div id="globalStatus" class="global-status" hidden aria-live="polite"></div>
+      <div id="screenRoot" class="screen-root"></div>
+    </section>
+  </main>
+  <script type="module" src="/hms-payables/src/main.js?v=20260904r1"></script>
+</body>
+</html>
