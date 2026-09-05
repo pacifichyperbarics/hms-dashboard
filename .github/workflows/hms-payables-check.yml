@@ -1,0 +1,41 @@
+name: HMS Payables checks
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'hms-payables/**'
+      - 'netlify/functions/payables-*.mjs'
+      - 'netlify/functions/lib/payables-*.mjs'
+      - '_redirects'
+      - '_headers'
+      - 'test/**'
+      - 'package.json'
+      - '.github/workflows/hms-payables-check.yml'
+  pull_request:
+    paths:
+      - 'hms-payables/**'
+      - 'netlify/functions/payables-*.mjs'
+      - 'netlify/functions/lib/payables-*.mjs'
+      - '_redirects'
+      - '_headers'
+      - 'test/**'
+      - 'package.json'
+      - '.github/workflows/hms-payables-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check browser module syntax
+        run: find hms-payables/src -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: Run regression tests
+        run: npm test
