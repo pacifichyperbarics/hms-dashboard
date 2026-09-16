@@ -1,11 +1,4 @@
-/hms-payables/
-  Cache-Control: no-cache, no-store, must-revalidate
-
-/hms-payables/index.html
-  Cache-Control: no-cache, no-store, must-revalidate
-
-/hms-payables/src/*
-  Cache-Control: no-cache, must-revalidate
-
-/hms-payables/assets/*
-  Cache-Control: no-cache, must-revalidate
+/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

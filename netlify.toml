@@ -1,5 +1,9 @@
-# HMS dashboard Netlify configuration
 [build]
   publish = "."
-  functions = "netlify/functions"
-  edge_functions = "netlify/edge-functions"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
