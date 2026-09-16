@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#0b2137">
+<title>HMS Clinic Operations v3</title>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="preconnect" href="https://tile.openstreetmap.org">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3yn7PiC0HUYla+fXnE4AH8hX6Jk6M=" crossorigin="">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="logo-mark">H</span><div><strong>HMS</strong><small>Clinic Operations v3</small></div></div>
+    <div class="nav-title">Workspace</div>
+    <nav class="nav" aria-label="Dashboard sections">
+      <button type="button" class="active" data-view="dashboard"><i class="dot-icon"></i>Dashboard</button>
+      <button type="button" data-view="clinics"><i class="dot-icon"></i>Clinics</button>
+      <button type="button" data-view="actions"><i class="dot-icon"></i>Actions</button>
+      <button type="button" data-view="risks"><i class="dot-icon"></i>Risks</button>
+      <button type="button" data-view="launch"><i class="dot-icon"></i>Launch tracker</button>
+      <button type="button" data-view="performance"><i class="dot-icon"></i>Performance</button>
+    </nav>
+    <div class="account">Clinic Dashboard v3<br>v2 remains unchanged.</div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="title"><p class="eyebrow">HMS operating command center</p><h1 id="title">Executive Dashboard</h1><p id="subtitle">Current priorities, clinic health and accountable next actions.</p></div>
+      <div class="top-actions"><span class="demo-pill">v3</span><span class="sync">Current</span></div>
+    </header>
+    <div id="views" aria-live="polite"></div>
+  </main>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="./data.js"></script>
+<script src="./map.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
