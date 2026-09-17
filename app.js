@@ -12,7 +12,7 @@
   const initials=name=>name.split(' ').map(x=>x[0]).join('').slice(0,2);
 
   function taskRow(task){
-    return '<article class="task-row"><div class="priority-bar '+escape(task.priority)+'"></div><div class="task-copy"><strong>'+escape(task.title)+'</strong><span>'+escape(task.clinic)+' · '+escape(task.source)+'</span></div><div class="task-owner"><b>'+escape(task.owner)+'</b><span>'+escape(task.collaborator?'+ '+task.collaborator:'')+'</span></div><div class="task-due">'+escape(task.due)+'</div>'+badge(task.status)+'</article>';
+    return '<article class="task-row"><div class="priority-bar '+escape(task.priority)+'"></div><div class="task-copy"><strong>'+escape(task.title)+'</strong><span>'+escape(task.clinic)+' · '+escape(task.source)+'</span></div><div class="task-owner"><b>'+escape(task.owner)+'</b><span>'+escape(task.collaborator?'+ '+task.collaborator:'')+'</span></div><div class="task-due">'+escape(task.due)+'</div>'+badge(task.status,task.status==='needs_michael'?'Needs Executive':null)+'</article>';
   }
   function personCard(person){
     return '<article class="person-card"><div class="avatar" style="--avatar:'+escape(person.color)+'">'+escape(initials(person.name))+'</div><div class="person-copy"><strong>'+escape(person.name)+'</strong><span>'+escape(person.role)+'</span><p>'+escape(person.lane)+'</p></div><div class="person-count"><b>'+person.open+'</b><span>open</span></div></article>';
